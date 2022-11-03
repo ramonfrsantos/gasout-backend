@@ -11,7 +11,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
-import br.com.gasoutapp.dto.RoomDTO;
+import br.com.gasoutapp.dto.RoomRequiredDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.exception.RoomAlreadyExistsException;
 import br.com.gasoutapp.exception.RoomNotFoundException;
@@ -37,11 +37,11 @@ public class RoomService {
         return roomRepository.findAllByUser(user);
     }
 
-    public ResponseEntity<Object> createRoom(RoomDTO dto) {
+    public ResponseEntity<Object> createRoom(RoomRequiredDTO dto) {
         List<Room> newUserRooms;
         User newUser;
 
-        User user = userRepository.findByLogin(dto.getUser().getEmail());
+        User user = userRepository.findByLogin(dto.getUserEmail());
         if (user == null) {
             throw new UserNotFoundException();
         }

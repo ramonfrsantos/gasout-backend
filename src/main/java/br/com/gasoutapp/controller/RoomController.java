@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gasoutapp.domain.Room;
-import br.com.gasoutapp.dto.RoomDTO;
+import br.com.gasoutapp.dto.RoomRequiredDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.exception.RoomNotFoundException;
 import br.com.gasoutapp.service.RoomService;
@@ -56,7 +56,7 @@ public class RoomController {
 
 	@RequestMapping(method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@Operation(summary = "Cadastrar quarto", security = @SecurityRequirement(name = "gasoutapp"))
-	public ResponseEntity<Object> createRoom(@RequestBody RoomDTO dto) {
+	public ResponseEntity<Object> createRoom(@RequestBody RoomRequiredDTO dto) {
 		return roomService.createRoom(dto);
 	}
 
