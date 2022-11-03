@@ -1,0 +1,45 @@
+server:
+  port: 8008
+  
+# Spring config
+spring:
+  main:
+    allow-circular-references: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: contato.gasout@gmail.com
+    password: vjtvrwgangxbawwm
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  application:
+    name: gas-out-api-dev
+  datasource:
+    url: jdbc:mysql://mysql-gasout.crhssplid8cz.us-east-1.rds.amazonaws.com:3306/gasoutdev?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+    username: admin
+    # root
+    password: gasoutdev
+    # GasOut2022
+    hikari:
+      max-lifetime:  600000
+  jpa:
+    show-sql: true
+    generate-ddl: true
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
+      
+# Swagger-ui Custom Path
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
