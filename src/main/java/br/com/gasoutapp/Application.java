@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 @SecurityScheme(name = "gasoutapp", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 public class Application {
 
-    // http://localhost:8008/swagger-ui/index.html
+    // http://localhost:8888/swagger-ui/index.html
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
