@@ -2,7 +2,6 @@ package br.com.gasoutapp.service;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -109,7 +108,18 @@ public class RoomService {
         }
     }
 
-    public Optional<Room> findRoomById(String id) {
-        return roomRepository.findById(id);
+    public Room findRoomByName(String email, String roomName) {
+        User user = userRepository.findByEmail(email);
+        if(user != null){
+            for(Room r: user.getRooms()){
+                if(r.getName().equalsIgnoreCase(roomName.toLowerCase())){
+                    return r;
+                }
+            }
+        } else {
+            throw new UserNotFoundException();
+        }
+
+        throw new RoomNotFoundException();
     }
 }

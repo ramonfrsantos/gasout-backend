@@ -4,7 +4,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
@@ -36,17 +35,17 @@ public class RoomController {
 		return roomService.getAllRooms();
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
-	@Operation(summary = "Buscar quarto por id", security = @SecurityRequirement(name = "gasoutapp"))
-	public EntityModel<Optional<Room>> findRoomById(@PathVariable String id) {
+	@RequestMapping(value = "/{email}/{roomName}", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@Operation(summary = "Buscar quarto por nome", security = @SecurityRequirement(name = "gasoutapp"))
+	public EntityModel<Room> findRoomById(@PathVariable String email, @PathVariable String roomName) {
 
-		Optional<Room> room = roomService.findRoomById(id);
+		Room room = roomService.findRoomByName(email, roomName);
 
 		if (room == null) {
 			throw new RoomNotFoundException();
 		}
 
-		EntityModel<Optional<Room>> model = EntityModel.of(room);
+		EntityModel<Room> model = EntityModel.of(room);
 
 		WebMvcLinkBuilder linkToUsers = linkTo(methodOn(this.getClass()).getAllRooms());
 		model.add(linkToUsers.withRel("all-rooms"));
