@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.dto.LoginDTO;
 import br.com.gasoutapp.dto.UserDTO;
-import br.com.gasoutapp.exception.UserNotFoundException;
+import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -52,7 +52,7 @@ public class UserController {
 		Optional<User> user = userService.findUserById(id);
 
 		if (user == null) {
-			throw new UserNotFoundException();
+			throw new NotFoundException("Usuario nao encontrado.");
 		}
 
 		EntityModel<Optional<User>> model = EntityModel.of(user);

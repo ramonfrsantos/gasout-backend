@@ -10,15 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gasoutapp.domain.Notification;
 import br.com.gasoutapp.dto.NotificationDTO;
-import br.com.gasoutapp.exception.NotificationNotFoundException;
+import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,32 +31,32 @@ public class NotificationController {
 	@Autowired
 	private NotificationService notificationService;
 
-	@RequestMapping(method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@GetMapping
 	@Operation(summary = "Buscar todas as notificações", security = @SecurityRequirement(name = "gasoutapp"))
 	public List<Notification> getAllNotifications() {
 		return notificationService.getAllNotifications();
 	}
 
-	@RequestMapping(value = "/recent/{email}", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@GetMapping("/recent/{email}")
 	@Operation(summary = "Buscar notificações recentes por email", security = @SecurityRequirement(name = "gasoutapp"))
 	public List<Notification> getAllRecentNotifications(@PathVariable String email) {
 		return notificationService.getAllRecentNotifications(email);
 	}
 
-	@RequestMapping(method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@PostMapping
 	@Operation(summary = "Criar uma notificação", security = @SecurityRequirement(name = "gasoutapp"))
 	public ResponseEntity<Object> createNotification(@RequestBody NotificationDTO dto) {
 		return notificationService.createNotification(dto);
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@GetMapping("/{id}")
 	@Operation(summary = "Buscar notificação por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public EntityModel<Optional<Notification>> findNotificationById(@PathVariable String id) {
 
 		Optional<Notification> notification = notificationService.findNotificationById(id);
 
 		if (notification == null) {
-			throw new NotificationNotFoundException();
+			throw new NotFoundException("Notificação não encontrada.");
 		}
 
 		EntityModel<Optional<Notification>> model = EntityModel.of(notification);
@@ -65,7 +67,7 @@ public class NotificationController {
 		return model;
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE, produces = "application/json;charset=UTF-8")
+	@DeleteMapping("/{id}")
 	@Operation(summary = "Excluir notificação por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public void deleteNotification(@PathVariable String id) {
 		notificationService.deleteNotification(id);

@@ -16,7 +16,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @Service
 public class TokenService {
 
-    final int HORAS_TIMEOUT = 20 * 12 * 30 * 24;
+    final int HORAS_TIMEOUT = 1 * 5 * 30 * 24;
 
     @Autowired
     private UserRepository repository;

@@ -13,103 +13,96 @@ import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
-import br.com.gasoutapp.exception.RoomAlreadyExistsException;
-import br.com.gasoutapp.exception.RoomNotFoundException;
-import br.com.gasoutapp.exception.UserNotFoundException;
+import br.com.gasoutapp.exception.AlreadyExistsException;
+import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.repository.RoomRepository;
-import br.com.gasoutapp.repository.UserRepository;
 
 @Service
 public class RoomService {
 
-    @Autowired
-    private RoomRepository roomRepository;
+	@Autowired
+	private RoomRepository repository;
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired
+	private UserService userService;
 
-    public List<Room> getAllRooms() {
-        return roomRepository.findAll();
-    }
+	public List<Room> getAllRooms() {
+		return repository.findAll();
+	}
 
-    public List<Room> getAllUserRooms(String login) {
-        User user = userRepository.findByLogin(login);
-        return roomRepository.findAllByUser(user);
-    }
+	public List<Room> getAllUserRooms(String login) {
+		return repository.findAllByUser(userService.findByLogin(login));
+	}
 
-    public ResponseEntity<Object> createRoom(RoomDTO dto) {
-        List<Room> newUserRooms;
-        User newUser;
+	public ResponseEntity<Object> createRoom(RoomDTO dto) {
+		List<Room> newUserRooms;
+		User newUser;
 
-        User user = userRepository.findByLogin(dto.getUser().getEmail());
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
-        newUser = user;
+		User user = userService.findByLogin(dto.getUser().getEmail());
+		if (user == null) {
+			throw new NotFoundException("Usuario nao encontrado.");
+		}
+		newUser = user;
 
-        List<Room> rooms = roomRepository.findAllByUser(user);
-        for (Room room : rooms) {
-            if (room.getName().equals(dto.getName())) {
-                throw new RoomAlreadyExistsException();
-            }
-        }
-        newUserRooms = rooms;
+		List<Room> rooms = repository.findAllByUser(user);
+		for (Room room : rooms) {
+			if (room.getName().equals(dto.getName())) {
+				throw new AlreadyExistsException("Esse cômodo já foi cadastrado.");
+			}
+		}
+		newUserRooms = rooms;
 
-        Room newRoom = new Room();
+		Room newRoom = new Room();
 
-        newRoom.setUser(user);
-        newRoom.setName(dto.getName());
-        newRoom.setUserEmail(user.getEmail());
-        newRoom = roomRepository.save(newRoom);
+		newRoom.setUser(user);
+		newRoom.setName(dto.getName());
+		newRoom.setUserEmail(user.getEmail());
+		newRoom = repository.save(newRoom);
 
-        newUserRooms.add(newRoom);
+		newUserRooms.add(newRoom);
 
-        newUser.setRooms(newUserRooms);
-        userRepository.save(newUser);
+		userService.setUserRooms(newUserRooms, newUser);
 
-        URI locationRoom = ServletUriComponentsBuilder
-        .fromCurrentRequest()
-        .path("/{id}")
-        .buildAndExpand(newRoom.getId())
-        .toUri();
+		URI locationRoom = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+				.buildAndExpand(newRoom.getId()).toUri();
 
-    return ResponseEntity.created(locationRoom).build();
-    }
+		return ResponseEntity.created(locationRoom).build();
+	}
 
-    public Room sendRoomSensorValue(SensorDetailsDTO dto, String login) {
-        Room newRoom = new Room();
+	public Room sendRoomSensorValue(SensorDetailsDTO dto, String login) {
+		Room newRoom = new Room();
 
-        User user = userRepository.findByLogin(login);
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
+		User user = userService.findByLogin(login);
+		if (user == null) {
+			throw new NotFoundException("Usuario nao encontrado.");
+		}
 
-        List<Room> rooms = roomRepository.findAllByUser(user);
-        for (Room room : rooms) {
-            if (room.getName().equalsIgnoreCase(dto.getName())) {
-                newRoom = room;
-                newRoom.setSensorValue(dto.getSensorValue());
-                newRoom.setAlarmOn(dto.isAlarmOn());
-                newRoom.setNotificationOn(dto.isNotificationOn());
-                newRoom.setSprinklersOn(dto.isSprinklersOn());
-                roomRepository.save(newRoom);
-            }
-        }
+		List<Room> rooms = repository.findAllByUser(user);
+		for (Room room : rooms) {
+			if (room.getName().equalsIgnoreCase(dto.getName())) {
+				newRoom = room;
+				newRoom.setSensorValue(dto.getSensorValue());
+				newRoom.setAlarmOn(dto.isAlarmOn());
+				newRoom.setNotificationOn(dto.isNotificationOn());
+				newRoom.setSprinklersOn(dto.isSprinklersOn());
+				repository.save(newRoom);
+			}
+		}
 
-        return newRoom;
-    }
+		return newRoom;
+	}
 
-    public void deleteRoom(String id) {
-        Room room = roomRepository.getById(id);
-        if (room == null) {
-            throw new RoomNotFoundException();
-        } else {
-            room.setDeleted(true);
-            roomRepository.save(room);
-        }
-    }
+	public void deleteRoom(String id) {
+		Room room = repository.getById(id);
+		if (room == null) {
+			throw new NotFoundException("Cômodo com o id informado não está cadastrado.");
+		} else {
+			room.setDeleted(true);
+			repository.save(room);
+		}
+	}
 
-    public Optional<Room> findRoomById(String id) {
-        return roomRepository.findById(id);
-    }
+	public Optional<Room> findRoomById(String id) {
+		return repository.findById(id);
+	}
 }

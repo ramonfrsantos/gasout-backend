@@ -1,14 +1,12 @@
 package br.com.gasoutapp.service;
 
+import static br.com.gasoutapp.utils.StringUtils.createRandomCode;
+import static br.com.gasoutapp.utils.StringUtils.normalizeString;
+
 import java.net.URI;
-import java.security.SecureRandom;
-import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -18,17 +16,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import br.com.gasoutapp.domain.Notification;
+import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
 import br.com.gasoutapp.dto.LoginDTO;
 import br.com.gasoutapp.dto.UserDTO;
-import br.com.gasoutapp.exception.LoginNotFoundException;
+import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.exception.UserAlreadyRegisteredException;
-import br.com.gasoutapp.exception.UserNotFoundException;
-import br.com.gasoutapp.exception.WrongPasswordException;
 import br.com.gasoutapp.repository.UserRepository;
 import br.com.gasoutapp.security.CriptexCustom;
 import br.com.gasoutapp.security.LoginResultDTO;
@@ -37,215 +34,188 @@ import br.com.gasoutapp.security.TokenService;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired
+	private UserRepository repository;
 
-    @Autowired
-    private TokenService tokenService;
+	@Autowired
+	private TokenService tokenService;
 
-    @Autowired
-    private JavaMailSender mailSender;
+	@Autowired
+	private JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
-    private String companyEmail;
+	@Value("${spring.mail.username}")
+	private String companyEmail;
 
-    private String adminEmail = "ramonfrsantos@gmail.com";
+	@Value("${user.admin.email}")
+	private String adminEmail;
 
-    public User parseDTOToEntity(UserDTO userDTO) {
-        User newUser;
-        User user = userRepository.findByEmail(userDTO.getEmail());
+	@Value("${user.admin.password}")
+	private String adminPassword;
 
-        if (user == null) {
-            user = new User();
-        } else {
-            throw new UserAlreadyRegisteredException();
-        }
+	@Value("${user.admin.name}")
+	private String adminName;
 
-        newUser = user;
+	public User parseDTOToEntity(UserDTO userDTO) {
+		User newUser = new User();
 
-        newUser.setName(normalizeString(userDTO.getName()));
-        newUser.setEmail(userDTO.getEmail());
-        newUser.setLogin(userDTO.getEmail());
-        newUser.setLastUpdate(new Date());
+		newUser.setName(normalizeString(userDTO.getName()));
+		newUser.setEmail(userDTO.getEmail());
+		newUser.setLogin(userDTO.getEmail());
+		newUser.setLastUpdate(new Date());
 
-        String password = CriptexCustom.encrypt(userDTO.getPassword());
+		String password = CriptexCustom.encrypt(userDTO.getPassword());
 
-        newUser.setPassword(password);
+		newUser.setPassword(password);
 
-        if (userDTO.getEmail().equals(adminEmail)) {
-            newUser.getRoles().add(UserTypeEnum.ADMIN);
-        } else {
-            newUser.getRoles().add(UserTypeEnum.CLIENTE);
-        }
+		if (userDTO.getEmail().equals(adminEmail)) {
+			newUser.getRoles().add(UserTypeEnum.ADMIN);
+		} else {
+			newUser.getRoles().add(UserTypeEnum.CLIENTE);
+		}
 
-        return newUser;
-    }
+		return newUser;
+	}
 
-    public String checkIfAdminExists() {
-        List<UserTypeEnum> roles = new ArrayList<UserTypeEnum>();
-        roles.add(UserTypeEnum.ADMIN);
+	@Transactional
+	public ResponseEntity<Object> register(UserDTO userDTO) {
+		User newUser = create(userDTO);
 
-        List<User> admins = userRepository.findAllByRoles(UserTypeEnum.ADMIN);
-        if(admins == null || admins.size() == 0){
-            UserDTO userDTO = new UserDTO("Ramon Santos ADMIN", "ramonfrsantos@gmail.com", "GasOut@2022");
+		URI locationUser = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+				.buildAndExpand(newUser.getId()).toUri();
 
-            User newUserAdmin = parseDTOToEntity(userDTO);
-            newUserAdmin = userRepository.save(newUserAdmin);
+		return ResponseEntity.created(locationUser).build();
+	}
 
-            String token = "";
+	public User create(UserDTO userDTO) {
+		Optional<User> optUser = repository.findByEmail(userDTO.getEmail());
 
-            try {
-                token = this.login("ramonfrsantos@gmail.com", "GasOut@2022").getToken();
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            
-            return token;
-        } else {
-            return "Admin user already created.";
-        }
-    }
+		if (optUser.isPresent()) {
+			throw new UserAlreadyRegisteredException();
+		}
 
-    @Transactional
-    public ResponseEntity<Object> register(UserDTO userDTO) {
-        User newUser = parseDTOToEntity(userDTO);
-        newUser = userRepository.save(newUser);
+		return repository.save(parseDTOToEntity(userDTO));
+	}
 
-        URI locationUser = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(newUser.getId())
-                .toUri();
+	@Transactional
+	public void delete(String login) {
+		User user = findByLogin(login);
+		user.setDeleted(true);
 
-        return ResponseEntity.created(locationUser).build();
-    }
+		repository.save(user);
+	}
 
-    @Transactional
-    public void delete(String login) {
-        User user = userRepository.findByLogin(login);
-        if (user != null) {
-            user.setDeleted(true);
-            userRepository.save(user);
-        } else {
-            throw new UserNotFoundException();
-        }
-    }
+	public List<User> findAll() {
+		return repository.findAll();
+	}
 
-    @ExceptionHandler({ Exception.class })
-    public LoginResultDTO login(String login, String password) throws Exception {
-        if (password.length() < 6) {
-            throw new WrongPasswordException();
-        }
-        password = CriptexCustom.encrypt(password);
-        User user = userRepository.findByLoginAndPassword(login, password);
-        User userLogin = userRepository.findByLogin(login);
-        if (user == null) {
-            if (userLogin == null) {
-                throw new LoginNotFoundException();
-            } else if (!userLogin.getPassword().equals(password)) {
-                throw new WrongPasswordException();
-            } else {
-                throw new UserNotFoundException();
-            }
-        } else {
-            LoginResultDTO dto = this.tokenService.createTokenForUser(user);
-            dto.setUserId(user.getId());
-            if (user.getName() != null && !user.getName().equals("")) {
-    
-                dto.setUserName(normalizeString(user.getName()));
-            }
-            userRepository.save(user);
-            return dto;
-        }
-    }
+	public String getVerificationCode(String login) {
+		User user = findByEmail(login);
 
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
+		return user.getVerificationCode();
+	}
 
-    public String getVerificationCode(String login) {
-        User user = userRepository.findByEmail(login);
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
+	public boolean checkIfCodesAreEqual(String login, String newCode) {
+		User user = findByEmail(login);
 
-        return user.getVerificationCode();
-    }
+		if (user.getVerificationCode().equals(newCode)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-    public boolean checkIfCodesAreEqual(String login, String newCode) {
-        User user = userRepository.findByEmail(login);
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
+	public String sendVerificationMail(String login) {
+		User newUser;
+		User user = findByEmail(login);
 
-        if (user.getVerificationCode().equals(newCode)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+		newUser = user;
 
-    public String normalizeString(String string) {
-        if(string != null){
-            return Normalizer.normalize(string, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "").toUpperCase();
-        }
+		System.out.println("Preparando para enviar a mensagem...");
 
-        return null;
-    }
+		String verificationCode = createRandomCode(6, "0123456789");
 
-    public String sendVerificationMail(String login) {
-        User newUser;
-        User user = userRepository.findByEmail(login);
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
-        newUser = user;
+		newUser.setVerificationCode(verificationCode);
+		newUser = repository.save(newUser);
 
-        System.out.println("Preparando para enviar a mensagem...");
+		String fullName = newUser.getName();
+		String firstName = fullName.split(" ", 0)[0];
 
-        String verificationCode = this.createRandomCode(6, "0123456789");
+		SimpleMailMessage message = new SimpleMailMessage();
+		message.setFrom(companyEmail);
+		message.setTo(newUser.getEmail());
+		message.setText("Olá, " + firstName + "! Seu código de verificação para a alteração da senha é:\n\n"
+				+ newUser.getVerificationCode()
+				+ "\n\nAgora é só entrar no aplicativo GasOut e escolher uma nova senha.");
+		message.setSubject("Alteração de senha no aplicativo GasOut");
 
-        newUser.setVerificationCode(verificationCode);
-        newUser = userRepository.save(newUser);
+		mailSender.send(message);
 
-        String fullName = newUser.getName();
-        String firstName = fullName.split(" ", 0)[0];
+		System.out.println("A Mensagem foi enviada.");
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(companyEmail);
-        message.setTo(newUser.getEmail());
-        message.setText("Olá, " + firstName + "! Seu código de verificação para a alteração da senha é:\n\n"
-                + newUser.getVerificationCode()
-                + "\n\nAgora é só entrar no aplicativo GasOut e escolher uma nova senha.");
-        message.setSubject("Alteração de senha no aplicativo GasOut");
+		return newUser.getVerificationCode();
+	}
 
-        mailSender.send(message);
+	public User refreshPassword(LoginDTO dto) {
+		User newUser = findByEmail(dto.getLogin());
+		newUser.setPassword(CriptexCustom.encrypt(dto.getPassword()));
 
-        System.out.println("A Mensagem foi enviada.");
+		return repository.save(newUser);
+	}
 
-        return newUser.getVerificationCode();
-    }
+	public Optional<User> findUserById(String id) {
+		return repository.findById(id);
+	}
 
-    public String createRandomCode(int tamanhoCodigo, String caracteresUsados) {
-        List<Character> grupoCaracteres = caracteresUsados.chars().mapToObj(i -> (char) i).collect(Collectors.toList());
-        Collections.shuffle(grupoCaracteres, new SecureRandom());
-        return grupoCaracteres.stream().map(Object::toString).limit(tamanhoCodigo).collect(Collectors.joining());
-    }
+	public List<User> findAllByRoles(UserTypeEnum userType) {
+		return repository.findAllByRoles(userType);
+	}
 
-    public User refreshPassword(LoginDTO dto) {
-        User newUser;
-        User user = userRepository.findByEmail(dto.getLogin());
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
-        newUser = user;
+	public LoginResultDTO getDtoByUser(User user) {
+		LoginResultDTO dto = this.tokenService.createTokenForUser(user);
 
-        newUser.setPassword(CriptexCustom.encrypt(dto.getPassword()));
-        return userRepository.save(newUser);
-    }
+		dto.setUserId(user.getId());
+		if (user.getName() != null && !user.getName().equals("")) {
+			dto.setUserName(normalizeString(user.getName()));
+		}
 
-    public Optional<User> findUserById(String id) {
-        return userRepository.findById(id);
-    }
+		repository.save(user);
+		return dto;
+	}
+
+	public User findByLogin(String login) {
+		Optional<User> optUser = repository.findByLogin(login);
+		if (optUser.isPresent()) {
+			return optUser.get();
+		} else {
+			throw new NotFoundException("Usuario nao encontrado.");
+		}
+	}
+
+	public User findByLoginAndPassword(String login, String password) {
+		Optional<User> optUser = repository.findByLoginAndPassword(login, password);
+		if (optUser.isPresent()) {
+			return optUser.get();
+		} else {
+			throw new NotFoundException("Usuario nao encontrado.");
+		}
+	}
+
+	private User findByEmail(String email) {
+		Optional<User> optUser = repository.findByEmail(email);
+		if (optUser.isPresent()) {
+			return optUser.get();
+		} else {
+			throw new NotFoundException("Usuario nao encontrado.");
+		}
+	}
+
+	public void setUserRooms(List<Room> newUserRooms, User user) {
+		user.setRooms(newUserRooms);
+		repository.save(user);
+	}
+
+	public void setUserNotifications(List<Notification> newUserNotifications, User user) {
+		user.setNotifications(newUserNotifications);
+		repository.save(user);
+	}
 }
