@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.exception.AlreadyExistsException;
+import br.com.gasoutapp.exception.NotFoundException;
+import br.com.gasoutapp.exception.UnauthorizedException;
 import br.com.gasoutapp.exception.UserAlreadyRegisteredException;
 import br.com.gasoutapp.exception.WrongPasswordException;
 
@@ -71,6 +72,16 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro.", detailsMessage);
 
 		return new ResponseEntity<>(exceptionResponse, HttpStatus.FOUND);
+	}
+	
+	@ExceptionHandler(UnauthorizedException.class)
+	public final ResponseEntity<Object> handleUnauthorizedException(UnauthorizedException e, WebRequest request) {
+
+		String detailsMessage = e.getMessage();
+
+		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro.", detailsMessage);
+
+		return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
 	}
 
 	@Override

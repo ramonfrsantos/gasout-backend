@@ -33,46 +33,46 @@ import lombok.Data;
 @Table(name = "t_user")
 @Where(clause = "deleted = false")
 public class User {
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id")
-    private String id;
+	@Id
+	@GeneratedValue(generator = "uuid2")
+	@GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
+	@Column(name = "id")
+	private String id;
 
-    @Column(name = "name")
-    private String name;
+	@Column(name = "name")
+	private String name;
 
-    @Column(name = "login")
-    private String login;
+	@Column(name = "login")
+	private String login;
 
-    @Column(name = "email")
-    private String email;
+	@Column(name = "email")
+	private String email;
 
-    @Column(name = "password")
-    private String password;
+	@Column(name = "password")
+	private String password;
 
-    @Column(name = "verification_code")
-    private String verificationCode;
+	@Column(name = "verification_code")
+	private String verificationCode;
 
-    @Column(name = "deleted")
-    private boolean deleted;
+	@Column(name = "deleted")
+	private boolean deleted;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @Column(name = "fk_notification")
-    private List<Notification> notifications = new ArrayList<>();
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@Column(name = "fk_notification")
+	private List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @Fetch(value = FetchMode.SUBSELECT)
-    @Column(name = "fk_room")
-    private List<Room> rooms = new ArrayList<>();
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@Fetch(value = FetchMode.SUBSELECT)
+	@Column(name = "fk_room")
+	private List<Room> rooms = new ArrayList<>();
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "last_update")
-    private Date lastUpdate;
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "last_update")
+	private Date lastUpdate;
 
-    @ElementCollection
-    @CollectionTable(name = "t_user_role", joinColumns = @JoinColumn(name = "fk_user"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private List<UserTypeEnum> roles = new ArrayList<>();
+	@ElementCollection
+	@CollectionTable(name = "t_user_role", joinColumns = @JoinColumn(name = "fk_user"))
+	@Enumerated(EnumType.STRING)
+	@Column(name = "role")
+	private List<UserTypeEnum> roles = new ArrayList<>();
 }

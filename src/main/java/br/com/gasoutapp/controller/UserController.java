@@ -34,28 +34,26 @@ public class UserController {
 
 	@RequestMapping(method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
 	@Operation(summary = "Buscar todos os usuários", security = @SecurityRequirement(name = "gasoutapp"))
-	public List<User> findAll() {
+	public List<UserDTO> findAll() {
 		return userService.findAll();
 	}
 
 	@RequestMapping(method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@Operation(summary = "Registrar usuário no sistema", security = @SecurityRequirement(name = "gasoutapp"))
-	public ResponseEntity<Object> register(@Valid @RequestBody UserDTO dto) throws Exception {
+	public ResponseEntity<UserDTO> register(@Valid @RequestBody UserDTO dto) throws Exception {
 		return userService.register(dto);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
 	@Operation(summary = "Buscar usuário por id", security = @SecurityRequirement(name = "gasoutapp"))
-	public EntityModel<Optional<User>> findUserById(@PathVariable String id) {
-		System.out.println();
+	public EntityModel<UserDTO> findUserById(@PathVariable String id) {
+		Optional<User> optUser = userService.findUserById(id);
 
-		Optional<User> user = userService.findUserById(id);
-
-		if (user == null) {
+		if (!optUser.isPresent()) {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
 
-		EntityModel<Optional<User>> model = EntityModel.of(user);
+		EntityModel<UserDTO> model = EntityModel.of(new UserDTO(optUser.get()));
 
 		WebMvcLinkBuilder linkToUsers = linkTo(methodOn(this.getClass()).findAll());
 		model.add(linkToUsers.withRel("all-users"));
@@ -71,7 +69,7 @@ public class UserController {
 
 	@RequestMapping(path = { "/refresh" }, method = RequestMethod.PUT, produces = "application/json;charset=UTF-8")
 	@Operation(summary = "Atualizar a senha", security = @SecurityRequirement(name = "gasoutapp"))
-	public User sendVerificationMail(@RequestBody LoginDTO dto) throws Exception {
+	public UserDTO sendVerificationMail(@RequestBody LoginDTO dto) throws Exception {
 		return userService.refreshPassword(dto);
 	}
 

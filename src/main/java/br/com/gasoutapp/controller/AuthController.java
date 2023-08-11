@@ -5,16 +5,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gasoutapp.dto.LoginDTO;
 import br.com.gasoutapp.security.LoginResultDTO;
+import br.com.gasoutapp.security.UserJWT;
 import br.com.gasoutapp.service.AuthService;
 
 @RestController
 @RequestMapping("auth")
 public class AuthController {
-	
+
 	@Autowired
 	private AuthService service;
 
@@ -26,5 +28,15 @@ public class AuthController {
 	@GetMapping("/validate-admin")
 	public String checkIfAdminExists() {
 		return service.checkIfAdminExists();
+	}
+
+	@PostMapping("/refresh-token")
+	public LoginResultDTO login(@RequestParam String refreshToken) {
+		return service.refreshToken(refreshToken);
+	}
+	
+	@GetMapping("/find-by-token")
+	public UserJWT getUserByToken(@RequestParam String accessToken) {
+		return service.getUserByToken(accessToken);
 	}
 }

@@ -7,11 +7,13 @@ import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -54,6 +56,14 @@ public class UserService {
 
 	@Value("${user.admin.name}")
 	private String adminName;
+	
+	public List<UserDTO> parseToDTO(List<User> list) {
+		return list.stream().map(v -> parseToDTO(v)).collect(Collectors.toList());
+	}
+
+	public Page<UserDTO> parseToDTO(Page<User> page) {
+		return page.map(UserDTO::new);
+	}
 
 	public User parseDTOToEntity(UserDTO userDTO) {
 		User newUser = new User();
@@ -77,7 +87,7 @@ public class UserService {
 	}
 
 	@Transactional
-	public ResponseEntity<Object> register(UserDTO userDTO) {
+	public ResponseEntity<UserDTO> register(UserDTO userDTO) {
 		User newUser = create(userDTO);
 
 		URI locationUser = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
@@ -104,8 +114,8 @@ public class UserService {
 		repository.save(user);
 	}
 
-	public List<User> findAll() {
-		return repository.findAll();
+	public List<UserDTO> findAll() {
+		return parseToDTO(repository.findAll());
 	}
 
 	public String getVerificationCode(String login) {
@@ -155,11 +165,11 @@ public class UserService {
 		return newUser.getVerificationCode();
 	}
 
-	public User refreshPassword(LoginDTO dto) {
+	public UserDTO refreshPassword(LoginDTO dto) {
 		User newUser = findByEmail(dto.getLogin());
 		newUser.setPassword(CriptexCustom.encrypt(dto.getPassword()));
 
-		return repository.save(newUser);
+		return parseToDTO(newUser);
 	}
 
 	public Optional<User> findUserById(String id) {
@@ -217,5 +227,9 @@ public class UserService {
 	public void setUserNotifications(List<Notification> newUserNotifications, User user) {
 		user.setNotifications(newUserNotifications);
 		repository.save(user);
+	}
+
+	public UserDTO parseToDTO(User user) {
+		return new UserDTO(user);
 	}
 }

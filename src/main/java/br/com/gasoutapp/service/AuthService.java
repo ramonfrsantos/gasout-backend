@@ -15,12 +15,17 @@ import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.exception.WrongPasswordException;
 import br.com.gasoutapp.security.CriptexCustom;
 import br.com.gasoutapp.security.LoginResultDTO;
+import br.com.gasoutapp.security.TokenService;
+import br.com.gasoutapp.security.UserJWT;
 
 @Service
 public class AuthService {
 
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private TokenService tokenService;
 
 	@Value("${spring.mail.username}")
 	private String companyEmail;
@@ -75,5 +80,13 @@ public class AuthService {
 		} else {
 			return userService.getDtoByUser(user);
 		}
+	}
+	
+	public UserJWT getUserByToken(String token) {
+		return tokenService.getUserJWTFromToken(token);
+	}
+
+	public LoginResultDTO refreshToken(String refreshToken) {
+		return tokenService.refreshToken(refreshToken);
 	}
 }
