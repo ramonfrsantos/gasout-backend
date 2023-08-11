@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -28,19 +30,31 @@ public class NotificationService {
 	@Autowired
 	private UserService userService;
 
-	public List<Notification> getAllNotifications() {
-		return notificationRepository.findAll();
+	public List<NotificationDTO> parseToDTO(List<Notification> list) {
+		return list.stream().map(v -> parseToDTO(v)).collect(Collectors.toList());
 	}
 
-	public List<Notification> getAllRecentNotifications(String login) {
+	public Page<NotificationDTO> parseToDTO(Page<Notification> page) {
+		return page.map(NotificationDTO::new);
+	}
+
+	public NotificationDTO parseToDTO(Notification notification) {
+		return new NotificationDTO(notification);
+	}
+
+	public List<NotificationDTO> getAllNotifications() {
+		return parseToDTO(notificationRepository.findAll());
+	}
+
+	public List<NotificationDTO> getAllRecentNotifications(String login) {
 		User user = userService.findByLogin(login);
 		List<Notification> notifications = notificationRepository.findAllByUser(user);
 		reverseList(notifications);
 
-		return notifications;
+		return parseToDTO(notifications);
 	}
 
-	public ResponseEntity<Object> createNotification(NotificationDTO dto) {
+	public ResponseEntity<NotificationDTO> createNotification(NotificationDTO dto) {
 		List<Notification> newUserNotifications = new ArrayList<>();
 		User newUser;
 		User user = userService.findByLogin(dto.getEmail());
@@ -82,7 +96,7 @@ public class NotificationService {
 		return ResponseEntity.created(locationNotification).build();
 	}
 
-	public void deleteNotification(String id) {
+	public String deleteNotification(String id) {
 		Notification notification = notificationRepository.getById(id);
 		if (notification == null) {
 			throw new NotFoundException("Notificação não encontrada.");
@@ -90,6 +104,8 @@ public class NotificationService {
 			notification.setDeleted(true);
 			notificationRepository.save(notification);
 		}
+
+		return "Registro excluido com sucesso.";
 	}
 
 	public void setAllUserNotificationsNull(List<Notification> notifications, User user) {

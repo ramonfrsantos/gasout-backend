@@ -3,8 +3,10 @@ package br.com.gasoutapp.service;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -26,15 +28,27 @@ public class RoomService {
 	@Autowired
 	private UserService userService;
 
-	public List<Room> getAllRooms() {
-		return repository.findAll();
+	public List<RoomDTO> parseToDTO(List<Room> list) {
+		return list.stream().map(v -> parseToDTO(v)).collect(Collectors.toList());
 	}
 
-	public List<Room> getAllUserRooms(String login) {
-		return repository.findAllByUser(userService.findByLogin(login));
+	public Page<RoomDTO> parseToDTO(Page<Room> page) {
+		return page.map(RoomDTO::new);
 	}
 
-	public ResponseEntity<Object> createRoom(RoomDTO dto) {
+	public RoomDTO parseToDTO(Room notification) {
+		return new RoomDTO(notification);
+	}
+
+	public List<RoomDTO> getAllRooms() {
+		return parseToDTO(repository.findAll());
+	}
+
+	public List<RoomDTO> getAllUserRooms(String login) {
+		return parseToDTO(repository.findAllByUser(userService.findByLogin(login)));
+	}
+
+	public ResponseEntity<RoomDTO> createRoom(RoomDTO dto) {
 		List<Room> newUserRooms;
 		User newUser;
 
@@ -69,7 +83,7 @@ public class RoomService {
 		return ResponseEntity.created(locationRoom).build();
 	}
 
-	public Room sendRoomSensorValue(SensorDetailsDTO dto, String login) {
+	public RoomDTO sendRoomSensorValue(SensorDetailsDTO dto, String login) {
 		Room newRoom = new Room();
 
 		User user = userService.findByLogin(login);
@@ -89,10 +103,10 @@ public class RoomService {
 			}
 		}
 
-		return newRoom;
+		return parseToDTO(newRoom);
 	}
 
-	public void deleteRoom(String id) {
+	public String deleteRoom(String id) {
 		Room room = repository.getById(id);
 		if (room == null) {
 			throw new NotFoundException("Cômodo com o id informado não está cadastrado.");
@@ -100,6 +114,8 @@ public class RoomService {
 			room.setDeleted(true);
 			repository.save(room);
 		}
+
+		return "Registro excluido com sucesso.";
 	}
 
 	public Optional<Room> findRoomById(String id) {

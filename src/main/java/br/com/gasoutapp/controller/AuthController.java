@@ -20,23 +20,24 @@ public class AuthController {
 	@Autowired
 	private AuthService service;
 
-	@PostMapping("/login")
-	public LoginResultDTO login(@RequestBody LoginDTO dto) throws Exception {
-		return service.login(dto.getLogin(), dto.getPassword());
-	}
-
 	@GetMapping("/validate-admin")
 	public String checkIfAdminExists() {
 		return service.checkIfAdminExists();
+	}
+
+	@GetMapping("/find-by-token")
+	public UserJWT getUserByToken(@RequestParam(required = true) String accessToken) {
+		return service.getUserByToken(accessToken);
+	}
+
+	@PostMapping("/login")
+	public LoginResultDTO login(@RequestBody LoginDTO dto) throws Exception {
+		return service.login(dto.getLogin(), dto.getPassword());
 	}
 
 	@PostMapping("/refresh-token")
 	public LoginResultDTO login(@RequestParam String refreshToken) {
 		return service.refreshToken(refreshToken);
 	}
-	
-	@GetMapping("/find-by-token")
-	public UserJWT getUserByToken(@RequestParam String accessToken) {
-		return service.getUserByToken(accessToken);
-	}
+
 }

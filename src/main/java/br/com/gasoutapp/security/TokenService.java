@@ -4,14 +4,15 @@ import static br.com.gasoutapp.utils.DateUtils.differenceInSeconds;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.gasoutapp.domain.User;
+import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.repository.UserRepository;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -45,36 +46,42 @@ public class TokenService {
 
 		dto.setRefreshToken(CriptexCustom.encrypt(refreshToken));
 
+		Long expiresIn = differenceInSeconds(new Date(), calendar.getTime());
+
+		dto.setExpiresIn(expiresIn);
+
 		return dto;
 	}
 
 	public LoginResultDTO refreshToken(String refreshToken) {
 		refreshToken = refreshToken.replace("Bearer ", "");
 		refreshToken = CriptexCustom.decrypt(refreshToken);
-
 		Claims claim = Jwts.parser().setSigningKey(SecurityFilter.SECRET).parseClaimsJws(refreshToken).getBody();
+		Optional<User> usuario = repository.findById(claim.get("id", String.class));
+		if (usuario.isPresent()) {
+			return createTokenForUser(usuario.get());
+		}
 
-		User usuario = repository.getById(claim.get("id", String.class));
-		LoginResultDTO dto = createTokenForUser(usuario);
-
-		return dto;
+		throw new NotFoundException("Usuario não encontrado.");
 	}
 
 	public UserJWT getUserJWTFromToken(String token) {
 		token = token.replace("Bearer ", "");
 		token = CriptexCustom.decrypt(token);
 		Claims claim = Jwts.parser().setSigningKey(SecurityFilter.SECRET).parseClaimsJws(token).getBody();
-		return new UserJWT(claim.get("id", String.class), claim.get("login", String.class),
-				differenceInSeconds(new Date(), claim.getExpiration()));
+
+		Long expiresIn = differenceInSeconds(new Date(), claim.getExpiration());
+
+		return new UserJWT(claim.get("id", String.class), claim.getSubject(), expiresIn, isValidToken(claim));
 	}
 
-	public boolean isValidToken(String token) {
-		try {
-			token = CriptexCustom.decrypt(token);
-			Jwts.parser().setSigningKey(SecurityFilter.SECRET).parseClaimsJws(token);
+	public boolean isValidToken(Claims claim) {
+		Optional<User> user = repository.findByLogin(claim.getSubject());
+
+		if (user.isPresent()) {
 			return true;
-		} catch (ExpiredJwtException e) {
-			return false;
 		}
+
+		return false;
 	}
 }

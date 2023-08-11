@@ -23,7 +23,7 @@ public class AuthService {
 
 	@Autowired
 	private UserService userService;
-	
+
 	@Autowired
 	private TokenService tokenService;
 
@@ -81,7 +81,7 @@ public class AuthService {
 			return userService.getDtoByUser(user);
 		}
 	}
-	
+
 	public UserJWT getUserByToken(String token) {
 		return tokenService.getUserJWTFromToken(token);
 	}

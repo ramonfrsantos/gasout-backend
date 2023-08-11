@@ -10,4 +10,5 @@ public class LoginResultDTO {
 	private String token;
 	private String refreshToken;
 	private String userName;
+	private Long expiresIn;
 }

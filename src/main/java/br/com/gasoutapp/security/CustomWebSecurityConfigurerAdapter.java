@@ -40,14 +40,12 @@ public class CustomWebSecurityConfigurerAdapter extends WebSecurityConfigurerAda
                 .antMatchers("/swagger-ui/**").permitAll()
                 .antMatchers("/auth").permitAll().and().authorizeRequests()
                 .antMatchers("/auth/**").permitAll().and().authorizeRequests()
-                // .antMatchers("/users").permitAll().and().authorizeRequests()
                 .antMatchers("/users").authenticated().antMatchers("/users").hasAuthority("ADMIN")
                 .antMatchers("/users/**").authenticated().antMatchers("/users/**").hasAuthority("ADMIN")
                 .antMatchers("/notifications").authenticated().antMatchers("/notifications").hasAuthority("ADMIN")
                 .antMatchers("/notifications/**").authenticated().antMatchers("/notifications/**").hasAuthority("ADMIN")
                 .antMatchers("/rooms").authenticated().antMatchers("/rooms").hasAuthority("ADMIN")
                 .antMatchers("/rooms/**").authenticated().antMatchers("/rooms/**").hasAuthority("ADMIN")
-                .and().sessionManagement()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);

@@ -56,13 +56,17 @@ public class UserService {
 
 	@Value("${user.admin.name}")
 	private String adminName;
-	
+
 	public List<UserDTO> parseToDTO(List<User> list) {
 		return list.stream().map(v -> parseToDTO(v)).collect(Collectors.toList());
 	}
 
 	public Page<UserDTO> parseToDTO(Page<User> page) {
 		return page.map(UserDTO::new);
+	}
+
+	public UserDTO parseToDTO(User user) {
+		return new UserDTO(user);
 	}
 
 	public User parseDTOToEntity(UserDTO userDTO) {
@@ -107,11 +111,13 @@ public class UserService {
 	}
 
 	@Transactional
-	public void delete(String login) {
+	public String delete(String login) {
 		User user = findByLogin(login);
 		user.setDeleted(true);
 
 		repository.save(user);
+
+		return "Registro excluido com sucesso.";
 	}
 
 	public List<UserDTO> findAll() {
@@ -227,9 +233,5 @@ public class UserService {
 	public void setUserNotifications(List<Notification> newUserNotifications, User user) {
 		user.setNotifications(newUserNotifications);
 		repository.save(user);
-	}
-
-	public UserDTO parseToDTO(User user) {
-		return new UserDTO(user);
 	}
 }
