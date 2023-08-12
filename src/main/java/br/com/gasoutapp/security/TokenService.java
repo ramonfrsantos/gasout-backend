@@ -36,19 +36,17 @@ public class TokenService {
 
 		calendar.add(Calendar.HOUR, HORAS_TIMEOUT);
 
-		String token = Jwts.builder().claim("id", user.getId()).claim("login", user.getLogin())
-				.setExpiration(calendar.getTime()).signWith(SignatureAlgorithm.HS512, SecurityFilter.SECRET).compact();
-
+		String token = Jwts.builder().claim("id", user.getId()).claim("roles", user.getRoles())
+				.setSubject(user.getLogin()).setExpiration(calendar.getTime())
+				.signWith(SignatureAlgorithm.HS512, SecurityFilter.SECRET).compact();
 		dto.setToken(CriptexCustom.encrypt(token));
 
 		String refreshToken = Jwts.builder().claim("id", user.getId()).setSubject(user.getLogin())
 				.signWith(SignatureAlgorithm.HS512, SecurityFilter.SECRET).compact();
-
 		dto.setRefreshToken(CriptexCustom.encrypt(refreshToken));
 
-		Long expiresIn = differenceInSeconds(new Date(), calendar.getTime());
-
-		dto.setExpiresIn(expiresIn);
+		dto.setTokenExpiresIn(calendar.getTime());
+		dto.setTokenType("Bearer");
 
 		return dto;
 	}
