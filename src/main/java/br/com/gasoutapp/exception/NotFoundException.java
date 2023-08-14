@@ -4,13 +4,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(code = HttpStatus.NOT_FOUND)
-public class RoomNotFoundException extends RuntimeException {
+public class NotFoundException extends RuntimeException {
 
-	public RoomNotFoundException() {
-        super("Cômodo com o id informado não está cadastrado.");
-    }
-
-    public RoomNotFoundException(String message) {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+    public NotFoundException(String message) {
         super(message);
     }
 }

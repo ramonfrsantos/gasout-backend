@@ -1,12 +1,16 @@
 package br.com.gasoutapp.service;
 
+import static br.com.gasoutapp.utils.StringUtils.reverseList;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -14,118 +18,110 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import br.com.gasoutapp.domain.Notification;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.dto.NotificationDTO;
-import br.com.gasoutapp.exception.NotificationNotFoundException;
-import br.com.gasoutapp.exception.UserNotFoundException;
+import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.repository.NotificationRepository;
-import br.com.gasoutapp.repository.UserRepository;
 
 @Service
 public class NotificationService {
 
-    @Autowired
-    private NotificationRepository notificationRepository;
+	@Autowired
+	private NotificationRepository notificationRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired
+	private UserService userService;
 
-    public List<Notification> getAllNotifications() {
-        return notificationRepository.findAll();
-    }
+	public List<NotificationDTO> parseToDTO(List<Notification> list) {
+		return list.stream().map(v -> parseToDTO(v)).collect(Collectors.toList());
+	}
 
+	public Page<NotificationDTO> parseToDTO(Page<Notification> page) {
+		return page.map(NotificationDTO::new);
+	}
 
-    public List<Notification> getAllRecentNotifications(String login) {
-        User user = userRepository.findByLogin(login);
-        List<Notification> notifications = notificationRepository.findAllByUser(user);
-        reverseList(notifications);
+	public NotificationDTO parseToDTO(Notification notification) {
+		return new NotificationDTO(notification);
+	}
 
-        return notifications;
-    }
+	public List<NotificationDTO> getAllNotifications() {
+		return parseToDTO(notificationRepository.findAll());
+	}
 
-    public ResponseEntity<Object> createNotification(NotificationDTO dto) {
-        List<Notification> newUserNotifications = new ArrayList<>();
-        User newUser;
-        User user = userRepository.findByLogin(dto.getEmail());
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
-        newUser = user;
+	public List<NotificationDTO> getAllRecentNotifications(String login) {
+		User user = userService.findByLogin(login);
+		List<Notification> notifications = notificationRepository.findAllByUser(user);
+		reverseList(notifications);
 
-        List<Notification> notifications = notificationRepository.findAllByUser(user);
-        if (notifications.size() >= 10) {
-            setAllUserNotificationsNull(notifications, user);
-        } else {
-            newUserNotifications = notifications;
-        }
+		return parseToDTO(notifications);
+	}
 
-        Notification newNotification = new Notification();
+	public ResponseEntity<NotificationDTO> createNotification(NotificationDTO dto) {
+		List<Notification> newUserNotifications = new ArrayList<>();
+		User newUser;
+		User user = userService.findByLogin(dto.getEmail());
+		if (user == null) {
+			throw new NotFoundException("Usuario nao encontrado.");
+		}
+		newUser = user;
 
-        newNotification.setUser(user);
-        newNotification.setTitle(dto.getTitle());
-        newNotification.setMessage(dto.getMessage());
-        newNotification.setDate(new Date());
+		List<Notification> notifications = notificationRepository.findAllByUser(user);
+		if (notifications.size() >= 10) {
+			setAllUserNotificationsNull(notifications, user);
+		} else {
+			newUserNotifications = notifications;
+		}
 
-        newNotification = notificationRepository.save(newNotification);
-        newUserNotifications.add(newNotification);
+		Notification newNotification = new Notification();
 
-        newUser.setNotifications(newUserNotifications);
-        userRepository.save(newUser);
+		newNotification.setUser(user);
+		newNotification.setTitle(dto.getTitle());
+		newNotification.setMessage(dto.getMessage());
+		newNotification.setDate(new Date());
 
-        List<Notification> notificationsUserNull = notificationRepository.findAllByUser(null);
-        if (notificationsUserNull.size() > 0) {
-            for (Notification notification: notificationsUserNull){
-                notification.setDeleted(true);
-                notificationRepository.save(notification);
-            }
-        }
+		newNotification = notificationRepository.save(newNotification);
+		newUserNotifications.add(newNotification);
 
-        URI locationNotification = ServletUriComponentsBuilder
-        .fromCurrentRequest()
-        .path("/{id}")
-        .buildAndExpand(newNotification.getId())
-        .toUri();
+		userService.setUserNotifications(newUserNotifications, newUser);
 
-        return ResponseEntity.created(locationNotification).build();
-    }
+		List<Notification> notificationsUserNull = notificationRepository.findAllByUser(null);
+		if (notificationsUserNull.size() > 0) {
+			for (Notification notification : notificationsUserNull) {
+				notification.setDeleted(true);
+				notificationRepository.save(notification);
+			}
+		}
 
-    public void deleteNotification(String id) {
-        Notification notification = notificationRepository.getById(id);
-        if(notification == null){
-            throw  new NotificationNotFoundException();
-        } else {
-            notification.setDeleted(true);
-            notificationRepository.save(notification);
-        }
-    }
+		URI locationNotification = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+				.buildAndExpand(newNotification.getId()).toUri();
 
-    public void setAllUserNotificationsNull(List<Notification> notifications, User user) {
-        if (user != null) {
-            User newUser;
-            newUser = user;
-            List<Notification> newNotificationsList = new ArrayList<>();
-            newUser.setNotifications(newNotificationsList);
-            userRepository.save(newUser);
-        }
-        for (Notification notification : notifications) {
-            notification.setUser(null);
-            notificationRepository.save(notification);
-        }
-    }
+		return ResponseEntity.created(locationNotification).build();
+	}
 
-    public static <T> void reverseList(List<T> list) {
-        // base case: the list is empty, or only one element is left
-        if (list == null || list.size() <= 1) {
-            return;
-        }
-        // remove the first element
-        T value = list.remove(0);
-        // recur for remaining items
-        reverseList(list);
-        // insert the top element back after recurse for remaining items
-        list.add(value);
-    }
+	public String deleteNotification(String id) {
+		Notification notification = notificationRepository.getById(id);
+		if (notification == null) {
+			throw new NotFoundException("Notificação não encontrada.");
+		} else {
+			notification.setDeleted(true);
+			notificationRepository.save(notification);
+		}
 
+		return "Registro excluido com sucesso.";
+	}
 
-    public Optional<Notification> findNotificationById(String id) {
-      return notificationRepository.findById(id);
-    }
+	public void setAllUserNotificationsNull(List<Notification> notifications, User user) {
+		if (user != null) {
+			User newUser;
+			newUser = user;
+			List<Notification> newNotificationsList = new ArrayList<>();
+			userService.setUserNotifications(newNotificationsList, newUser);
+		}
+		for (Notification notification : notifications) {
+			notification.setUser(null);
+			notificationRepository.save(notification);
+		}
+	}
+
+	public Optional<Notification> findNotificationById(String id) {
+		return notificationRepository.findById(id);
+	}
 }

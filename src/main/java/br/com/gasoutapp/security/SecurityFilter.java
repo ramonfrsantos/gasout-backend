@@ -44,7 +44,6 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        System.out.println("#login security filter");
         Optional<String> optionalToken = getToken((HttpServletRequest) request);
         optionalToken.ifPresent(token -> {
 
@@ -64,9 +63,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(claims.getSubject(), null, authorities);
             usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-            System.out.println("#login autenticado");
         });
-        System.out.println("#login não autenticado");
         filterChain.doFilter(request, response);
     }
 
