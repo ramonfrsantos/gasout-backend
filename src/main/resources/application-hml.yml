@@ -1,0 +1,42 @@
+server:
+   port: 8080
+
+# Variables
+user:
+   admin:
+      email: contato.gasout@gmail.com
+      password: GasOut@2022!
+      name: GasOut ADMIN
+
+spring:
+   main:
+# Spring config
+      allow-circular-references: true
+   mail:
+      host: smtp.gmail.com
+      port: 587
+      username: contato.gasout@gmail.com
+      password: vjtvrwgangxbawwm
+      properties:
+         mail:
+            smtp:
+               auth: true
+               starttls:
+                  enable: true
+   application:
+      name: gas-out-api-prod
+   datasource:
+      url: jdbc:mysql://gasout-prod.cgkqlzpmss3r.us-east-1.rds.amazonaws.com:3306/gasoutprod?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      username: gasout_prod
+      password: quaLfZ8TTcgwpNQ
+
+springdoc:
+   swagger-ui:
+      path: /swagger-ui.html
+# ------------------
+# ------------------
+# Orphaned comments:
+# ------------------
+# Was at begin of line:37 :# Orphaned comments:
+# Was at begin of line:38 :# ------------------
+# Was at begin of line:39 :# Was at begin of line:33 :# Swagger-ui Custom Path
