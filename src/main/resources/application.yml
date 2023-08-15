@@ -1,7 +1,7 @@
 spring:
   profiles:
-    #active: "@spring.profiles.active@"
-    active: hml
+    active: "@spring.profiles.active@"
+    #active: hml
   jpa:
     properties:
       hibernate:
