@@ -26,7 +26,7 @@ spring:
    application:
       name: gas-out-api-prod
    datasource:
-      url: ${SPRING_DATASOURCE_URL}
+      url: jdbc:mysql://${SPRING_DATASOURCE_URL}?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
       username: ${SPRING_MAIL_USERNAME}
       password: ${SPRING_DATASOURCE_PASSWORD}
 
