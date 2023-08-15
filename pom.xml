@@ -15,7 +15,7 @@
 	<name>gas-out-app</name>
 	<description>GasOut API</description>
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>17</java.version>
 	</properties>
 	<profiles>
 		<profile>
