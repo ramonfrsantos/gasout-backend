@@ -12,6 +12,7 @@ import lombok.Data;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDTO {
+	private String id;
 	@Size(min = 2, message = "O nome deve conter no minimo 2 caracteres.")
 	private String name;
 	@Email(regexp = ".+[@].+[\\.].+")
@@ -24,6 +25,7 @@ public class UserDTO {
 	}
 
 	public UserDTO(User user) {
+		this.id = user.getId();
 		this.name = user.getName();
 		this.email = user.getEmail();
 		this.password = user.getPassword();
