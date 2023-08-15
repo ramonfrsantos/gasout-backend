@@ -1,12 +1,12 @@
 spring:
-  profiles:
-    active: "@spring.profiles.active@"
-    #active: hml
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
-        ddl-auto: update
-        format_sql: true
-    show-sql: true
-    generate-ddl: true
+   profiles:
+      active: '@spring.profiles.active@'
+#active: dev
+   jpa:
+      properties:
+         hibernate:
+            dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+            ddl-auto: update
+            format_sql: true
+      show-sql: true
+      generate-ddl: true

@@ -1,3 +1,4 @@
+# Server
 server:
    port: 8080
 
@@ -8,9 +9,9 @@ user:
       password: ${USER_ADMIN_PASSWORD}
       name: GasOut ADMIN
 
+# Spring config
 spring:
    main:
-# Spring config
       allow-circular-references: true
    mail:
       host: smtp.gmail.com
@@ -26,17 +27,10 @@ spring:
    application:
       name: gas-out-api-prod
    datasource:
-      url: jdbc:mysql://${SPRING_DATASOURCE_URL}?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      url: ${SPRING_DATASOURCE_URL}
       username: ${SPRING_DATASOURCE_USERNAME}
       password: ${SPRING_DATASOURCE_PASSWORD}
 
 springdoc:
    swagger-ui:
       path: /swagger-ui.html
-# ------------------
-# ------------------
-# Orphaned comments:
-# ------------------
-# Was at begin of line:37 :# Orphaned comments:
-# Was at begin of line:38 :# ------------------
-# Was at begin of line:39 :# Was at begin of line:33 :# Swagger-ui Custom Path

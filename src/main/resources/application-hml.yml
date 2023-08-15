@@ -1,3 +1,4 @@
+# Server
 server:
    port: 8080
 
@@ -8,9 +9,9 @@ user:
       password: GasOut@2022!
       name: GasOut ADMIN
 
+# Spring config
 spring:
    main:
-# Spring config
       allow-circular-references: true
    mail:
       host: smtp.gmail.com
@@ -33,10 +34,3 @@ spring:
 springdoc:
    swagger-ui:
       path: /swagger-ui.html
-# ------------------
-# ------------------
-# Orphaned comments:
-# ------------------
-# Was at begin of line:37 :# Orphaned comments:
-# Was at begin of line:38 :# ------------------
-# Was at begin of line:39 :# Was at begin of line:33 :# Swagger-ui Custom Path
