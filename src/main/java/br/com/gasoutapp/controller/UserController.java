@@ -52,6 +52,13 @@ public class UserController extends BaseRestController {
 			throws Exception {
 		return buildResponse(userService.checkIfCodesAreEqual(email, newCode));
 	}
+	
+	@GetMapping("/get-user-pass/{email}")
+	@Operation(summary = "Buscar senha do usuário encriptada", security = @SecurityRequirement(name = "gasoutapp"))
+	public BaseResponseDTO getUserPassword(@PathVariable String email)
+			throws Exception {
+		return buildResponse(userService.getUserPassword(email));
+	}
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar usuário por id", security = @SecurityRequirement(name = "gasoutapp"))
