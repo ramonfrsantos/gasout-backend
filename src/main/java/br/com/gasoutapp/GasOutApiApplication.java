@@ -11,10 +11,10 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 @SpringBootApplication
 @OpenAPIDefinition
 @SecurityScheme(name = "gasoutapp", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
-public class Application {
+public class GasOutApiApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(GasOutApiApplication.class, args);
 	}
 	
 }

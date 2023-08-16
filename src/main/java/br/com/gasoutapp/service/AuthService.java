@@ -45,12 +45,12 @@ public class AuthService {
 
 		List<User> admins = userService.findAllByRoles(UserTypeEnum.ADMIN);
 		if (admins == null || admins.size() == 0) {
-			userService.create(new UserDTO(adminName, adminEmail, adminPassword));
+			User user = userService.create(new UserDTO(adminName, adminEmail, adminPassword));
 
 			String token = "";
 
 			try {
-				token = this.login(adminEmail, adminPassword).getToken();
+				token = this.login(user.getLogin(), CriptexCustom.decrypt(user.getPassword())).getToken();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
