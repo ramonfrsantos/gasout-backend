@@ -26,7 +26,6 @@ import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
 import br.com.gasoutapp.dto.LoginDTO;
 import br.com.gasoutapp.dto.UserDTO;
-import br.com.gasoutapp.dto.UserPasswordDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.exception.UserAlreadyRegisteredException;
 import br.com.gasoutapp.repository.UserRepository;
@@ -234,10 +233,5 @@ public class UserService {
 	public void setUserNotifications(List<Notification> newUserNotifications, User user) {
 		user.setNotifications(newUserNotifications);
 		repository.save(user);
-	}
-
-	public UserPasswordDTO getUserPassword(String email) {
-		User user = findByEmail(email);
-		return new UserPasswordDTO(user);
 	}
 }

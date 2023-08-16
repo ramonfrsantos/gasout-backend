@@ -3,7 +3,6 @@ package br.com.gasoutapp.dto;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import br.com.gasoutapp.domain.User;
@@ -17,7 +16,6 @@ public class UserDTO {
 	private String name;
 	@Email(regexp = ".+[@].+[\\.].+")
 	private String email;
-	@JsonIgnore
 	private String password;
 	private String verificationCode;
 
@@ -28,12 +26,10 @@ public class UserDTO {
 		this.id = user.getId();
 		this.name = user.getName();
 		this.email = user.getEmail();
-		this.password = user.getPassword();
 	}
 
 	public UserDTO(String name, String email, String password) {
 		this.name = name;
 		this.email = email;
-		this.password = password;
 	}
 }
