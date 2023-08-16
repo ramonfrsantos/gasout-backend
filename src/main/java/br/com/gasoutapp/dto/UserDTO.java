@@ -22,15 +22,19 @@ public class UserDTO {
 	public UserDTO() {
 	}
 
-	public UserDTO(User user) {
-		this.id = user.getId();
-		this.name = user.getName();
-		this.email = user.getEmail();
+	public UserDTO(String id) {
+		this.id = id;
 	}
 
 	public UserDTO(String name, String email, String password) {
 		this.name = name;
 		this.email = email;
 		this.password = password;
+	}
+
+	public UserDTO(User user) {
+		this.id = user.getId();
+		this.name = user.getName();
+		this.email = user.getEmail();
 	}
 }

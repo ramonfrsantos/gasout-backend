@@ -22,7 +22,7 @@ public class RoomDTO {
 		this.sensorValue = entity.getSensorValue();
 
 		if (entity.getUser() != null) {
-			this.user = new UserDTO(entity.getUser());
+			this.user = new UserDTO(entity.getUser().getId());
 		}
 	}
 }

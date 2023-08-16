@@ -36,8 +36,8 @@ public class RoomService {
 		return page.map(RoomDTO::new);
 	}
 
-	public RoomDTO parseToDTO(Room notification) {
-		return new RoomDTO(notification);
+	public RoomDTO parseToDTO(Room room) {
+		return new RoomDTO(room);
 	}
 
 	public List<RoomDTO> getAllRooms() {
@@ -80,7 +80,7 @@ public class RoomService {
 		URI locationRoom = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 				.buildAndExpand(newRoom.getId()).toUri();
 
-		return ResponseEntity.created(locationRoom).build();
+		return ResponseEntity.created(locationRoom).body(parseToDTO(newRoom));
 	}
 
 	public RoomDTO sendRoomSensorValue(SensorDetailsDTO dto, String login) {

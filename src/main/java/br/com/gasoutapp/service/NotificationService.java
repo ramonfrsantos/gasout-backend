@@ -93,7 +93,7 @@ public class NotificationService {
 		URI locationNotification = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 				.buildAndExpand(newNotification.getId()).toUri();
 
-		return ResponseEntity.created(locationNotification).build();
+		return ResponseEntity.created(locationNotification).body(parseToDTO(newNotification));
 	}
 
 	public String deleteNotification(String id) {

@@ -97,7 +97,7 @@ public class UserService {
 		URI locationUser = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 				.buildAndExpand(newUser.getId()).toUri();
 
-		return ResponseEntity.created(locationUser).build();
+		return ResponseEntity.created(locationUser).body(parseToDTO(newUser));
 	}
 
 	public User create(UserDTO userDTO) {
