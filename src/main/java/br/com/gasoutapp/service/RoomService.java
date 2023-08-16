@@ -71,6 +71,7 @@ public class RoomService {
 		newRoom.setUser(user);
 		newRoom.setName(dto.getName());
 		newRoom.setUserEmail(user.getEmail());
+		newRoom.setSensorValue(0);
 		newRoom = repository.save(newRoom);
 
 		newUserRooms.add(newRoom);
