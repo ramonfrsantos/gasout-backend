@@ -8,6 +8,15 @@ user:
       email: ${USER_ADMIN_EMAIL}
       password: ${USER_ADMIN_PASSWORD}
       name: GasOut ADMIN
+mqtt:
+   client:
+      url: ${MQTT_CLIENT_URL}
+      id: ${MQTT_CLIENT_ID}
+aws:
+   client:
+      access-key:
+         id: ${AWS_CLIENT_ACCESS_KEY_ID}
+         secret: ${AWS_CLIENT_ACCESS_KEY_SECRET}
 
 # Spring config
 spring:

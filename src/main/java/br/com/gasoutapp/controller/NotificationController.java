@@ -28,25 +28,25 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RequestMapping("notifications")
 public class NotificationController extends BaseRestController {
 	@Autowired
-	private NotificationService notificationService;
+	private NotificationService service;
 
 	@GetMapping
 	@Operation(summary = "Buscar todas as notificações", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getAllNotifications() {
-		return buildResponse(notificationService.getAllNotifications());
+		return buildResponse(service.getAllNotifications());
 	}
 
 	@GetMapping("/recent/{email}")
 	@Operation(summary = "Buscar notificações recentes por email", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getAllRecentNotifications(@PathVariable String email) {
-		return buildResponse(notificationService.getAllRecentNotifications(email));
+		return buildResponse(service.getAllRecentNotifications(email));
 	}
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar notificação por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findNotificationById(@PathVariable String id) {
 
-		Optional<Notification> optNotification = notificationService.findNotificationById(id);
+		Optional<Notification> optNotification = service.findNotificationById(id);
 
 		if (!optNotification.isPresent()) {
 			throw new NotFoundException("Notificação não encontrada.");
@@ -63,12 +63,12 @@ public class NotificationController extends BaseRestController {
 	@PostMapping
 	@Operation(summary = "Criar uma notificação", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO createNotification(@RequestBody NotificationDTO dto) {
-		return buildResponse(notificationService.createNotification(dto));
+		return buildResponse(service.createNotification(dto));
 	}
 
 	@DeleteMapping("/{id}")
 	@Operation(summary = "Excluir notificação por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO deleteNotification(@PathVariable String id) {
-		return buildResponse(notificationService.deleteNotification(id));
+		return buildResponse(service.deleteNotification(id));
 	}
 }

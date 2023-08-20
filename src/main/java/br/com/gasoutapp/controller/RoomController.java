@@ -31,19 +31,19 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 public class RoomController extends BaseRestController {
 
 	@Autowired
-	private RoomService roomService;
+	private RoomService service;
 
 	@GetMapping
 	@Operation(summary = "Buscar todos os quartos", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getAllRooms() {
-		return buildResponse(roomService.getAllRooms());
+		return buildResponse(service.getAllRooms());
 	}
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar quarto por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findRoomById(@PathVariable String id) {
 
-		Optional<Room> optRoom = roomService.findRoomById(id);
+		Optional<Room> optRoom = service.findRoomById(id);
 
 		if (!optRoom.isPresent()) {
 			throw new NotFoundException("Cômodo com o id informado não está cadastrado.");
@@ -60,24 +60,24 @@ public class RoomController extends BaseRestController {
 	@GetMapping("/find-all/{email}")
 	@Operation(summary = "Buscar quartos por email", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getAllUserRooms(@PathVariable String email) {
-		return buildResponse(roomService.getAllUserRooms(email));
+		return buildResponse(service.getAllUserRooms(email));
 	}
 
 	@PostMapping
 	@Operation(summary = "Cadastrar quarto", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO createRoom(@RequestBody RoomDTO dto) {
-		return buildResponse(roomService.createRoom(dto));
+		return buildResponse(service.createRoom(dto));
 	}
 
 	@PutMapping("/sensor-measurement-details/{email}")
 	@Operation(summary = "Atualizar medidas relativas ao sensor", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO sendRoomSensorValue(@RequestBody SensorDetailsDTO dto, @PathVariable String email) {
-		return buildResponse(roomService.sendRoomSensorValue(dto, email));
+		return buildResponse(service.sendRoomSensorValue(dto, email));
 	}
 
 	@DeleteMapping("/{id}")
 	@Operation(summary = "Excluir quarto por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO deleteRoom(@PathVariable String id) {
-		return buildResponse(roomService.deleteRoom(id));
+		return buildResponse(service.deleteRoom(id));
 	}
 }

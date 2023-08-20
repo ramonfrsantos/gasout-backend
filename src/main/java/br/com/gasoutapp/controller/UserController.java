@@ -32,31 +32,31 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RequestMapping("users")
 public class UserController extends BaseRestController {
 	@Autowired
-	private UserService userService;
+	private UserService service;
 
 	@GetMapping
 	@Operation(summary = "Buscar todos os usuários", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findAll() {
-		return buildResponse(userService.findAll());
+		return buildResponse(service.findAll());
 	}
 
 	@GetMapping("/verification-code/{email}")
 	@Operation(summary = "Buscar código de verificação por email", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getVerificationCode(@PathVariable String email) throws Exception {
-		return buildResponse(userService.getVerificationCode(email));
+		return buildResponse(service.getVerificationCode(email));
 	}
 
 	@GetMapping("/check-codes-equal/{newCode}/{email}")
 	@Operation(summary = "Verificar se o código de verificação é válido", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO checkIfCodesAreEqual(@PathVariable String email, @PathVariable String newCode)
 			throws Exception {
-		return buildResponse(userService.checkIfCodesAreEqual(email, newCode));
+		return buildResponse(service.checkIfCodesAreEqual(email, newCode));
 	}
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar usuário por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findUserById(@PathVariable String id) {
-		Optional<User> optUser = userService.findUserById(id);
+		Optional<User> optUser = service.findUserById(id);
 
 		if (!optUser.isPresent()) {
 			throw new NotFoundException("Usuario nao encontrado.");
@@ -73,25 +73,25 @@ public class UserController extends BaseRestController {
 	@PostMapping
 	@Operation(summary = "Registrar usuário no sistema", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO register(@Valid @RequestBody UserDTO dto) throws Exception {
-		return buildResponse(userService.register(dto));
+		return buildResponse(service.register(dto));
 	}
 
 	@PutMapping("/refresh")
 	@Operation(summary = "Atualizar a senha", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO sendVerificationMail(@RequestBody LoginDTO dto) throws Exception {
-		return buildResponse(userService.refreshPassword(dto));
+		return buildResponse(service.refreshPassword(dto));
 	}
 
 	@PutMapping("/send-verification-email/{email}")
 	@Operation(summary = "Enviar email com código de verificação", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO sendVerificationMail(@PathVariable String email) throws Exception {
-		return buildResponse(userService.sendVerificationMail(email));
+		return buildResponse(service.sendVerificationMail(email));
 	}
 
 	@DeleteMapping("/{email}")
 	@Operation(summary = "Excluir usuário por email", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO delete(@PathVariable String email) throws Exception {
-		return buildResponse(userService.delete(email));
+		return buildResponse(service.delete(email));
 	}
 
 }
