@@ -14,6 +14,8 @@ import br.com.gasoutapp.config.MQTTConfig;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.dto.FirebaseNotificationDTO;
 import br.com.gasoutapp.dto.NotificationDTO;
+import br.com.gasoutapp.dto.PublishResponseDTO;
+import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.dto.SensorGasPayloadDTO;
 import br.com.gasoutapp.security.CriptexCustom;
@@ -36,9 +38,13 @@ public class MqttPubSubService {
 	@Autowired
 	private FirebaseService firebaseService;
 
-	public String publishMessage(SensorGasPayloadDTO payload) throws AWSIotException, IOException, URISyntaxException {
+	public PublishResponseDTO publishMessage(SensorGasPayloadDTO payload)
+			throws AWSIotException, IOException, URISyntaxException {
 		mqttConfig.connectToIot();
 		mqttConfig.publish(payload);
+
+		PublishResponseDTO responseDTO = new PublishResponseDTO();
+		responseDTO.setMessagePublished(true);
 
 		String title = "";
 		String body = "";
@@ -91,8 +97,10 @@ public class MqttPubSubService {
 		firebaseNotificationDTO.setRegistration_ids(ids);
 
 		firebaseService.createFirebaseNotification(firebaseNotificationDTO);
+		responseDTO.setPushNotificationSent(true);
 
 		notificationService.createNotification(notificationDTO);
+		responseDTO.setNotificationCreated(true);
 
 		SensorDetailsDTO details = new SensorDetailsDTO();
 		details.setSensorValue(sensorValue);
@@ -101,9 +109,10 @@ public class MqttPubSubService {
 		details.setNotificationOn(notificationOn);
 		details.setSprinklersOn(sprinklersOn);
 
-		roomService.sendRoomSensorValue(details, email);
+		RoomDTO room = roomService.sendRoomSensorValue(details, email);
+		responseDTO.setUpdatedRoom(room);
 
-		return "Mensagem publicada com sucesso.";
+		return responseDTO;
 	}
 
 }
