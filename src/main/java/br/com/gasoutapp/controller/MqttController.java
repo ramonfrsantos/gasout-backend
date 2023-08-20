@@ -1,5 +1,8 @@
 package br.com.gasoutapp.controller;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -7,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.amazonaws.services.iot.client.AWSIotException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import br.com.gasoutapp.dto.BaseResponseDTO;
 import br.com.gasoutapp.dto.SensorGasPayloadDTO;
@@ -23,7 +25,7 @@ public class MqttController extends BaseRestController {
 
 	@PostMapping("/publish")
 	@Operation(summary = "Publicar em um tópico", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO publishMessage(@RequestBody SensorGasPayloadDTO payload) throws AWSIotException, JsonProcessingException {
+	public BaseResponseDTO publishMessage(@RequestBody SensorGasPayloadDTO payload) throws AWSIotException, IOException, URISyntaxException {
 		return buildResponse(service.publishMessage(payload));
 	}
 }

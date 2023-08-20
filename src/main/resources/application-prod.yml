@@ -2,8 +2,8 @@
 server:
    port: 8080
 
-# Variables
 user:
+# Variables
    admin:
       email: ${USER_ADMIN_EMAIL}
       password: ${USER_ADMIN_PASSWORD}
@@ -17,10 +17,12 @@ aws:
       access-key:
          id: ${AWS_CLIENT_ACCESS_KEY_ID}
          secret: ${AWS_CLIENT_ACCESS_KEY_SECRET}
+firebase:
+   api-key: key=${FIREBASE_API_KEY}
 
-# Spring config
 spring:
    main:
+# Spring config
       allow-circular-references: true
    mail:
       host: smtp.gmail.com

@@ -32,7 +32,7 @@ public class AuthController {
 
 	@PostMapping("/login")
 	public LoginResultDTO login(@RequestBody LoginDTO dto) throws Exception {
-		return service.login(dto.getLogin(), dto.getPassword());
+		return service.login(dto.getLogin(), dto.getPassword(), dto.getTokenFirebase());
 	}
 
 	@PostMapping("/refresh-token")

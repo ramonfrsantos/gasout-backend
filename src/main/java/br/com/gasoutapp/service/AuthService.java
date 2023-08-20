@@ -50,7 +50,7 @@ public class AuthService {
 			String token = "";
 
 			try {
-				token = this.login(user.getLogin(), CriptexCustom.decrypt(user.getPassword())).getToken();
+				token = this.login(user.getLogin(), CriptexCustom.decrypt(user.getPassword()), null).getToken();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -62,7 +62,7 @@ public class AuthService {
 	}
 
 	@ExceptionHandler({ Exception.class })
-	public LoginResultDTO login(String login, String password) throws Exception {
+	public LoginResultDTO login(String login, String password, String tokenFirebase) throws Exception {
 		if (password.length() < 6) {
 			throw new WrongPasswordException();
 		}
@@ -78,7 +78,7 @@ public class AuthService {
 				throw new NotFoundException("Usuario nao encontrado.");
 			}
 		} else {
-			return userService.getDtoByUser(user);
+			return userService.getDtoByUser(user, tokenFirebase);
 		}
 	}
 

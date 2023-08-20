@@ -24,35 +24,35 @@ import lombok.Data;
 @Table(name = "t_room")
 @Where(clause = "deleted = false")
 public class Room {
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id")
-    private String id;
+	@Id
+	@GeneratedValue(generator = "uuid2")
+	@GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
+	@Column(name = "id")
+	private String id;
 
-    @Column(name = "name")
-    private String name;
+	@Column(name = "name")
+	private String name;
 
-    @Column(name = "notification_on")
-    private boolean notificationOn;
+	@Column(name = "notification_on")
+	private boolean notificationOn;
 
-    @Column(name = "alarm_on")
-    private boolean alarmOn;
+	@Column(name = "alarm_on")
+	private boolean alarmOn;
 
-    @Column(name = "sprinklers_on")
-    private boolean sprinklersOn;
+	@Column(name = "sprinklers_on")
+	private boolean sprinklersOn;
 
-    @Column(name = "sensor_value")
-    private Integer sensorValue;
+	@Column(name = "sensor_value")
+	private Long sensorValue;
 
-    @Column(name = "user_email")
-    private String userEmail;
+	@Column(name = "user_email")
+	private String userEmail;
 
-    @Column(name = "deleted")
-    private boolean deleted;
+	@Column(name = "deleted")
+	private boolean deleted;
 
-    @JsonIgnore
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "fk_user")
-    private User user;
+	@JsonIgnore
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name = "fk_user")
+	private User user;
 }

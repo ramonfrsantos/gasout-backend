@@ -54,6 +54,9 @@ public class User {
 	@Column(name = "verification_code")
 	private String verificationCode;
 
+	@Column(name = "token_firebase")
+	private String tokenFirebase;
+
 	@Column(name = "deleted")
 	private boolean deleted;
 

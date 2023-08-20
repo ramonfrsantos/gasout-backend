@@ -8,7 +8,7 @@ public class RoomDTO {
 	private String id;
 	private String name;
 	private String userEmail;
-	private Integer sensorValue;
+	private Long sensorValue;
 	private UserDTO user;
 
 	public RoomDTO() {

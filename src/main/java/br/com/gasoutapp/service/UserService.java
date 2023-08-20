@@ -186,7 +186,7 @@ public class UserService {
 		return repository.findAllByRoles(userType);
 	}
 
-	public LoginResultDTO getDtoByUser(User user) {
+	public LoginResultDTO getDtoByUser(User user, String tokenFirebase) {
 		LoginResultDTO dto = this.tokenService.createTokenForUser(user);
 
 		dto.setUserId(user.getId());
@@ -194,7 +194,10 @@ public class UserService {
 			dto.setUserName(normalizeString(user.getName()));
 		}
 
+		user.setTokenFirebase(CriptexCustom.encrypt(tokenFirebase));
+
 		repository.save(user);
+
 		return dto;
 	}
 
