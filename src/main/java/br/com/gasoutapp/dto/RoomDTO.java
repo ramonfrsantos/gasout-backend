@@ -1,12 +1,13 @@
 package br.com.gasoutapp.dto;
 
 import br.com.gasoutapp.domain.Room;
+import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import lombok.Data;
 
 @Data
 public class RoomDTO {
 	private String id;
-	private String name;
+	private RoomNameEnum name;
 	private String userEmail;
 	private Long sensorValue;
 	private UserDTO user;

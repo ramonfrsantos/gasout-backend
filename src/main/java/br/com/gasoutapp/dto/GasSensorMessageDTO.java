@@ -1,9 +1,11 @@
 package br.com.gasoutapp.dto;
 
+import br.com.gasoutapp.domain.enums.RoomNameEnum;
+
 public class GasSensorMessageDTO {
 
 	private Long sensorValue;
-	private String roomName;
+	private RoomNameEnum roomName;
 	private String email;
 
 	public Long getSensorValue() {
@@ -14,11 +16,11 @@ public class GasSensorMessageDTO {
 		this.sensorValue = sensorValue;
 	}
 
-	public String getRoomName() {
+	public RoomNameEnum getRoomName() {
 		return roomName;
 	}
 
-	public void setRoomName(String roomName) {
+	public void setRoomName(RoomNameEnum roomName) {
 		this.roomName = roomName;
 	}
 

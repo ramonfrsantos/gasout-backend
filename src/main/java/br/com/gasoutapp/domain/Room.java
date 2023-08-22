@@ -3,6 +3,8 @@ package br.com.gasoutapp.domain;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -16,6 +18,7 @@ import org.hibernate.annotations.Where;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import lombok.Data;
 
 @DynamicUpdate
@@ -31,7 +34,8 @@ public class Room {
 	private String id;
 
 	@Column(name = "name")
-	private String name;
+	@Enumerated(EnumType.STRING)
+	private RoomNameEnum name;
 
 	@Column(name = "notification_on")
 	private boolean notificationOn;

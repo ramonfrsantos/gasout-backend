@@ -48,7 +48,7 @@ public class NotificationService {
 
 	public List<NotificationDTO> getAllRecentNotifications(String login) {
 		User user = userService.findByLogin(login);
-		List<Notification> notifications = notificationRepository.findAllByUser(user);
+		List<Notification> notifications = notificationRepository.findAllByUserOrderByDateAsc(user);
 		reverseList(notifications);
 
 		return parseToDTO(notifications);
@@ -63,7 +63,7 @@ public class NotificationService {
 		}
 		newUser = user;
 
-		List<Notification> notifications = notificationRepository.findAllByUser(user);
+		List<Notification> notifications = notificationRepository.findAllByUserOrderByDateAsc(user);
 		if (notifications.size() >= 10) {
 			setAllUserNotificationsNull(notifications, user);
 		} else {
@@ -82,7 +82,7 @@ public class NotificationService {
 
 		userService.setUserNotifications(newUserNotifications, newUser);
 
-		List<Notification> notificationsUserNull = notificationRepository.findAllByUser(null);
+		List<Notification> notificationsUserNull = notificationRepository.findAllByUserOrderByDateAsc(null);
 		if (notificationsUserNull.size() > 0) {
 			for (Notification notification : notificationsUserNull) {
 				notification.setDeleted(true);

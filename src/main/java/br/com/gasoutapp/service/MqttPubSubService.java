@@ -104,7 +104,7 @@ public class MqttPubSubService {
 
 		SensorDetailsDTO details = new SensorDetailsDTO();
 		details.setSensorValue(sensorValue);
-		details.setName(payload.getMessage().getRoomName());
+		details.setRoomName(payload.getMessage().getRoomName());
 		details.setAlarmOn(alarmOn);
 		details.setNotificationOn(notificationOn);
 		details.setSprinklersOn(sprinklersOn);
