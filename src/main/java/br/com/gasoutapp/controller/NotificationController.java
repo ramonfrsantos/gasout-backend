@@ -3,6 +3,8 @@ package br.com.gasoutapp.controller;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.gasoutapp.domain.Notification;
 import br.com.gasoutapp.dto.BaseResponseDTO;
 import br.com.gasoutapp.dto.NotificationDTO;
+import br.com.gasoutapp.dto.SensorGasPayloadDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,5 +73,11 @@ public class NotificationController extends BaseRestController {
 	@Operation(summary = "Excluir notificação por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO deleteNotification(@PathVariable String id) {
 		return buildResponse(service.deleteNotification(id));
+	}
+
+	@PostMapping("/push")
+	@Operation(summary = "Enviar push notification", security = @SecurityRequirement(name = "gasoutapp"))
+	public BaseResponseDTO sendPush(@RequestBody SensorGasPayloadDTO payload) throws IOException, URISyntaxException {
+		return buildResponse(service.sendPush(payload));
 	}
 }
