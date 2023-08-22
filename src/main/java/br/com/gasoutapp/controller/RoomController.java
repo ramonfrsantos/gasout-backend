@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gasoutapp.domain.Room;
+import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import br.com.gasoutapp.dto.BaseResponseDTO;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
@@ -39,7 +41,7 @@ public class RoomController extends BaseRestController {
 		return buildResponse(service.getAllRooms());
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping("/find/{id}")
 	@Operation(summary = "Buscar quarto por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findRoomById(@PathVariable String id) {
 
@@ -57,10 +59,10 @@ public class RoomController extends BaseRestController {
 		return buildResponse(model);
 	}
 
-	@GetMapping("/find-all/{email}")
-	@Operation(summary = "Buscar quartos por email", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO getAllUserRooms(@PathVariable String email) {
-		return buildResponse(service.getAllUserRooms(email));
+	@GetMapping("/{email}")
+	@Operation(summary = "Buscar quartos por email e por nome", security = @SecurityRequirement(name = "gasoutapp"))
+	public BaseResponseDTO getAllUserRooms(@PathVariable String email, @RequestParam(required = false) RoomNameEnum roomName) {
+		return buildResponse(service.getAllUserRooms(email, roomName));
 	}
 
 	@PostMapping
@@ -79,5 +81,11 @@ public class RoomController extends BaseRestController {
 	@Operation(summary = "Excluir quarto por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO deleteRoom(@PathVariable String id) {
 		return buildResponse(service.deleteRoom(id));
+	}
+	
+	@DeleteMapping("/delete-all")
+	@Operation(summary = "Excluir quartos", security = @SecurityRequirement(name = "gasoutapp"))
+	public void deleteAll() {
+		service.deleteAll();
 	}
 }

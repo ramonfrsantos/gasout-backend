@@ -41,7 +41,7 @@ public class MqttPubSubService {
 	public PublishResponseDTO publishMessage(SensorGasPayloadDTO payload)
 			throws AWSIotException, IOException, URISyntaxException {
 		mqttConfig.connectToIot();
-		mqttConfig.publish(payload);
+//		mqttConfig.publish(payload);
 
 		PublishResponseDTO responseDTO = new PublishResponseDTO();
 		responseDTO.setMessagePublished(true);
@@ -61,19 +61,19 @@ public class MqttPubSubService {
 
 			notificationOn = true;
 		} else if (sensorValue > 0 && sensorValue < 25) {
-			title = "Atenção! Verifique as opções de monitoramento...";
+			title = "🚨 Atenção!";
 			body = "Detectamos nível BAIXO de vazamento em seu local!";
 
 			notificationOn = true;
 		} else if (sensorValue >= 25 && sensorValue < 51) {
-			title = "🚨 Atenção! Verifique as opções de monitoramento ";
-			body = "Detectamos nível MÉDIO de vazamento em seu local!";
+			title = "🚨🚨 Detectamos nível MÉDIO de vazamento em seu local! ";
+			body = "Verifique as condições de monitoramento do seu cômodo...";
 
 			notificationOn = true;
 			alarmOn = true;
 		} else if (sensorValue >= 51) {
-			title = "Detectamos nível ALTO de vazamento em seu local!";
-			body = "Entre agora em opções de monitoramento do seu cômodo para acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
+			title = "🚨🚨🚨 Detectamos nível ALTO de vazamento em seu local!";
+			body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
 
 			notificationOn = true;
 			alarmOn = true;
@@ -104,7 +104,7 @@ public class MqttPubSubService {
 
 		SensorDetailsDTO details = new SensorDetailsDTO();
 		details.setSensorValue(sensorValue);
-		details.setName(payload.getMessage().getRoomName());
+		details.setRoomName(payload.getMessage().getRoomName());
 		details.setAlarmOn(alarmOn);
 		details.setNotificationOn(notificationOn);
 		details.setSprinklersOn(sprinklersOn);

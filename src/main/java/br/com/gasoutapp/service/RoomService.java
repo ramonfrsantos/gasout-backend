@@ -1,6 +1,7 @@
 package br.com.gasoutapp.service;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
+import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.exception.AlreadyExistsException;
@@ -44,8 +46,19 @@ public class RoomService {
 		return parseToDTO(repository.findAll());
 	}
 
-	public List<RoomDTO> getAllUserRooms(String login) {
-		return parseToDTO(repository.findAllByUser(userService.findByLogin(login)));
+	public List<RoomDTO> getAllUserRooms(String login, RoomNameEnum roomName) {
+		List<RoomDTO> rooms = new ArrayList<RoomDTO>();
+		
+		if(roomName == null) {
+			rooms = parseToDTO(repository.findAllByUser(userService.findByLogin(login)));			
+		} else {
+			RoomDTO roomDTO = getUserRoomByName(login, roomName);
+			if(roomDTO != null) {
+				rooms.add(roomDTO);				
+			}
+		}
+		
+		return rooms;
 	}
 
 	public ResponseEntity<RoomDTO> createRoom(RoomDTO dto) {
@@ -94,7 +107,7 @@ public class RoomService {
 
 		List<Room> rooms = repository.findAllByUser(user);
 		for (Room room : rooms) {
-			if (room.getName().equalsIgnoreCase(dto.getName())) {
+			if (room.getName() == dto.getRoomName()) {
 				newRoom = room;
 				newRoom.setSensorValue(dto.getSensorValue());
 				newRoom.setAlarmOn(dto.isAlarmOn());
@@ -121,5 +134,23 @@ public class RoomService {
 
 	public Optional<Room> findRoomById(String id) {
 		return repository.findById(id);
+	}
+
+	public RoomDTO getUserRoomByName(String email, RoomNameEnum roomName) {
+		User user = userService.findByLogin(email);
+		Optional<Room> optRoom = repository.findByUserAndName(user, roomName);
+		
+		if(optRoom.isPresent()) {
+			return parseToDTO(optRoom.get());			
+		} else {
+			return null;
+		}
+
+	}
+
+	public void deleteAll() {
+		for(Room room: repository.findAll()) {
+			repository.delete(room);
+		}
 	}
 }
