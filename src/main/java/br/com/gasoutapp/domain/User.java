@@ -20,16 +20,23 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
+import org.hibernate.envers.AuditJoinTable;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
 
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
 import lombok.Data;
 
+@DynamicUpdate
 @Entity
 @Data
+@Audited(withModifiedFlag = true)
+@AuditTable(value = "aud_t_user", catalog = "audit")
 @Table(name = "t_user")
 @Where(clause = "deleted = false")
 public class User {
@@ -60,10 +67,12 @@ public class User {
 	@Column(name = "deleted")
 	private boolean deleted;
 
+	@AuditJoinTable(name = "aud_t_user_notification", catalog = "audit")
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@Column(name = "fk_notification")
 	private List<Notification> notifications = new ArrayList<>();
 
+	@AuditJoinTable(name = "aud_t_user_room", catalog = "audit")
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@Fetch(value = FetchMode.SUBSELECT)
 	@Column(name = "fk_room")

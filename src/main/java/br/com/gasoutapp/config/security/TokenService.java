@@ -1,4 +1,4 @@
-package br.com.gasoutapp.security;
+package br.com.gasoutapp.config.security;
 
 import static br.com.gasoutapp.utils.DateUtils.differenceInSeconds;
 

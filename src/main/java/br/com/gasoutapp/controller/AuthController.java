@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.gasoutapp.config.security.LoginResultDTO;
+import br.com.gasoutapp.config.security.UserJWT;
 import br.com.gasoutapp.dto.LoginDTO;
-import br.com.gasoutapp.security.LoginResultDTO;
-import br.com.gasoutapp.security.UserJWT;
 import br.com.gasoutapp.service.AuthService;
 
 @RestController

@@ -15,6 +15,8 @@ import javax.persistence.Table;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -22,8 +24,10 @@ import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import lombok.Data;
 
 @DynamicUpdate
-@Data
 @Entity
+@Data
+@Audited(withModifiedFlag = true)
+@AuditTable(value = "aud_t_room", catalog = "audit")
 @Table(name = "t_room")
 @Where(clause = "deleted = false")
 public class Room {

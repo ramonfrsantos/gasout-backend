@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import br.com.gasoutapp.config.security.CriptexCustom;
 import br.com.gasoutapp.domain.Notification;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.dto.FirebaseNotificationDTO;
@@ -27,7 +28,6 @@ import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.dto.SensorGasPayloadDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.repository.NotificationRepository;
-import br.com.gasoutapp.security.CriptexCustom;
 
 @Service
 public class NotificationService {

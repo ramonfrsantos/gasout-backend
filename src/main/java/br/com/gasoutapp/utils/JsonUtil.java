@@ -9,35 +9,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonUtil {
 
-    private static ObjectMapper mapper;
+	private static ObjectMapper mapper;
 
-    static {
-        mapper = new ObjectMapper();
-    }
+	static {
+		mapper = new ObjectMapper();
+	}
 
-    public static String ObjectToJson(Object obj) {
-        try {
-            return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+	public static String ObjectToJson(Object obj) {
+		try {
+			return mapper.writeValueAsString(obj);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
-    public static <T> T jsonToObject(String json, Class<T> obj) {
+	public static <T> T jsonToObject(String json, Class<T> obj) {
 
-        try {
+		try {
 
+			return mapper.readValue(json, obj);
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-            return mapper.readValue(json, obj);
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
+		return null;
+	}
 }

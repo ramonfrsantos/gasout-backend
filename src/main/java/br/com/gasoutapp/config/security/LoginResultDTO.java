@@ -1,4 +1,4 @@
-package br.com.gasoutapp.security;
+package br.com.gasoutapp.config.security;
 
 import java.util.Date;
 

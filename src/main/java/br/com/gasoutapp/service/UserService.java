@@ -4,6 +4,7 @@ import static br.com.gasoutapp.utils.StringUtils.createRandomCode;
 import static br.com.gasoutapp.utils.StringUtils.normalizeString;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,9 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.query.AuditEntity;
+import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -20,18 +24,19 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import br.com.gasoutapp.config.security.CriptexCustom;
+import br.com.gasoutapp.config.security.LoginResultDTO;
+import br.com.gasoutapp.config.security.TokenService;
 import br.com.gasoutapp.domain.Notification;
 import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
 import br.com.gasoutapp.dto.LoginDTO;
+import br.com.gasoutapp.dto.RevisionDetailsDTO;
 import br.com.gasoutapp.dto.UserDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.exception.UserAlreadyRegisteredException;
 import br.com.gasoutapp.repository.UserRepository;
-import br.com.gasoutapp.security.CriptexCustom;
-import br.com.gasoutapp.security.LoginResultDTO;
-import br.com.gasoutapp.security.TokenService;
 
 @Service
 public class UserService {
@@ -56,6 +61,9 @@ public class UserService {
 
 	@Value("${user.admin.name}")
 	private String adminName;
+
+	@Autowired
+	private AuditReader auditReader;
 
 	public List<UserDTO> parseToDTO(List<User> list) {
 		return list.stream().map(v -> parseToDTO(v)).collect(Collectors.toList());
@@ -173,7 +181,10 @@ public class UserService {
 
 	public UserDTO refreshPassword(LoginDTO dto) {
 		User newUser = findByEmail(dto.getLogin());
-		newUser.setPassword(CriptexCustom.encrypt(dto.getPassword()));
+		if (dto.getPassword() != null) {
+			newUser.setPassword(CriptexCustom.encrypt(dto.getPassword()));
+			repository.save(newUser);
+		}
 
 		return parseToDTO(newUser);
 	}
@@ -236,5 +247,28 @@ public class UserService {
 	public void setUserNotifications(List<Notification> newUserNotifications, User user) {
 		user.setNotifications(newUserNotifications);
 		repository.save(user);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<RevisionDetailsDTO> getRevisions(String id) {
+		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(User.class, true)
+				.add(AuditEntity.id().eq(id));
+
+		return addResponseKeys(auditQuery.getResultList());
+	}
+
+	public List<RevisionDetailsDTO> addResponseKeys(List<Object[]> list) {
+		List<RevisionDetailsDTO> details = new ArrayList<RevisionDetailsDTO>();
+
+		for (Object[] revision : list) {
+			RevisionDetailsDTO r = new RevisionDetailsDTO();
+			r.setEntity(revision[0]);
+			r.setRevisionDetails(revision[1]);
+			r.setRevisionType(revision[2]);
+			r.setUpdatedAttributes(revision[3]);
+			details.add(r);
+		}
+
+		return details;
 	}
 }

@@ -8,15 +8,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import br.com.gasoutapp.config.security.CriptexCustom;
+import br.com.gasoutapp.config.security.LoginResultDTO;
+import br.com.gasoutapp.config.security.TokenService;
+import br.com.gasoutapp.config.security.UserJWT;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
 import br.com.gasoutapp.dto.UserDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.exception.WrongPasswordException;
-import br.com.gasoutapp.security.CriptexCustom;
-import br.com.gasoutapp.security.LoginResultDTO;
-import br.com.gasoutapp.security.TokenService;
-import br.com.gasoutapp.security.UserJWT;
 
 @Service
 public class AuthService {
