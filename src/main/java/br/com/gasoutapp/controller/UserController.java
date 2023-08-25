@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gasoutapp.domain.User;
@@ -35,9 +34,9 @@ public class UserController extends BaseRestController {
 	@Autowired
 	private UserService service;
 
-	@GetMapping("/rev")
+	@GetMapping("/revisions/{id}")
 	@Operation(summary = "Buscar revisões", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO getRevisions(@RequestParam String id) {
+	public BaseResponseDTO getRevisions(@PathVariable String id) {
 		return buildResponse(service.getRevisions(id));
 	}
 
