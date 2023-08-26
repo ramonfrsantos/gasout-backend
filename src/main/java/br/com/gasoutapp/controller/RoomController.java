@@ -5,6 +5,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -22,7 +24,7 @@ import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import br.com.gasoutapp.dto.BaseResponseDTO;
 import br.com.gasoutapp.dto.RoomDTO;
-import br.com.gasoutapp.dto.SensorDetailsDTO;
+import br.com.gasoutapp.dto.RoomSwitchesDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.service.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +36,7 @@ public class RoomController extends BaseRestController {
 
 	@Autowired
 	private RoomService service;
-	
+
 	@GetMapping("/revisions/{id}")
 	@Operation(summary = "Buscar revisões", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getRevisions(@PathVariable String id) {
@@ -67,7 +69,8 @@ public class RoomController extends BaseRestController {
 
 	@GetMapping("/{email}")
 	@Operation(summary = "Buscar cômodos por email e por nome", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO getAllUserRooms(@PathVariable String email, @RequestParam(required = false) RoomNameEnum roomName) {
+	public BaseResponseDTO getAllUserRooms(@PathVariable String email,
+			@RequestParam(required = false) RoomNameEnum roomName) {
 		return buildResponse(service.getAllUserRooms(email, roomName));
 	}
 
@@ -77,10 +80,10 @@ public class RoomController extends BaseRestController {
 		return buildResponse(service.createRoom(dto));
 	}
 
-	@PutMapping("/sensor-measurement-details/{email}")
-	@Operation(summary = "Atualizar medidas relativas ao sensor", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO sendRoomSensorValue(@RequestBody SensorDetailsDTO dto, @PathVariable String email) {
-		return buildResponse(service.sendRoomSensorValue(dto, email));
+	@PutMapping
+	@Operation(summary = "Atualizar switches do cômodo", security = @SecurityRequirement(name = "gasoutapp"))
+	public BaseResponseDTO sendRoomSensorValue(@Valid @RequestBody RoomSwitchesDTO dto) {
+		return buildResponse(service.updateSwitches(dto));
 	}
 
 	@DeleteMapping("/{id}")
@@ -88,7 +91,7 @@ public class RoomController extends BaseRestController {
 	public BaseResponseDTO deleteRoom(@PathVariable String id) {
 		return buildResponse(service.deleteRoom(id));
 	}
-	
+
 	@DeleteMapping("/delete-all")
 	@Operation(summary = "Excluir cômodos", security = @SecurityRequirement(name = "gasoutapp"))
 	public void deleteAll() {

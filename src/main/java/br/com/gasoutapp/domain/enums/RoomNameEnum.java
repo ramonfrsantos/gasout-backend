@@ -5,27 +5,27 @@ public enum RoomNameEnum {
 	AREA_DE_LAZER(4, "AREA DE LAZER"), AREA_DA_CHURRASQUEIRA(5, "AREA DA CHURRASQUEIRA"), BANHEIRO(6, "BANHEIRO"),
 	COZINHA(7, "COZINHA");
 
-	private Integer id;
-	private String descricao;
+	private Integer nameId;
+	private String nameDescription;
 
-	RoomNameEnum(int id, String descricao) {
-		this.id = id;
-		this.descricao = descricao;
+	RoomNameEnum(int nameId, String nameDescription) {
+		this.nameId = nameId;
+		this.nameDescription = nameDescription;
 	}
 
-	public Integer getId() {
-		return id;
+	public Integer getNameId() {
+		return nameId;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
+	public void setNameId(Integer nameId) {
+		this.nameId = nameId;
 	}
 
-	public String getDescricao() {
-		return descricao;
+	public String getNameDescription() {
+		return nameDescription;
 	}
 
-	public void setDescricao(String descricao) {
-		this.descricao = descricao;
+	public void setNameDescription(String nameDescription) {
+		this.nameDescription = nameDescription;
 	}
 }

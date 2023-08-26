@@ -45,7 +45,7 @@ public class NotificationService {
 
 	@Autowired
 	private RoomService roomService;
-	
+
 	@Autowired
 	private AuditReader auditReader;
 
@@ -153,38 +153,23 @@ public class NotificationService {
 		String title = "";
 		String body = "";
 
-		Boolean notificationOn = false;
-		Boolean alarmOn = false;
-		Boolean sprinklersOn = false;
-
-		Long sensorValue = payload.getMessage().getSensorValue();
+		Long sensorValue = payload.getDetails().getSensorValue();
 
 		if (sensorValue <= 0) {
 			title = "Apenas atualização de status...";
 			body = "Tudo em paz! Sem vazamento de gás no momento.";
-
-			notificationOn = true;
 		} else if (sensorValue > 0 && sensorValue < 25) {
 			title = "🚨 Atenção!";
 			body = "Detectamos nível BAIXO de vazamento em seu local!";
-
-			notificationOn = true;
 		} else if (sensorValue >= 25 && sensorValue < 51) {
 			title = "🚨🚨 Detectamos nível MÉDIO de vazamento em seu local! ";
 			body = "Verifique as condições de monitoramento do seu cômodo...";
-
-			notificationOn = true;
-			alarmOn = true;
 		} else if (sensorValue >= 51) {
 			title = "🚨🚨🚨 Detectamos nível ALTO de vazamento em seu local!";
 			body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
-
-			notificationOn = true;
-			alarmOn = true;
-			sprinklersOn = true;
 		}
 
-		String email = payload.getMessage().getEmail();
+		String email = payload.getDetails().getUserEmail();
 
 		NotificationDTO notificationDTO = new NotificationDTO();
 		notificationDTO.setEmail(email);
@@ -208,17 +193,15 @@ public class NotificationService {
 
 		SensorDetailsDTO details = new SensorDetailsDTO();
 		details.setSensorValue(sensorValue);
-		details.setRoomName(payload.getMessage().getRoomName());
-		details.setAlarmOn(alarmOn);
-		details.setNotificationOn(notificationOn);
-		details.setSprinklersOn(sprinklersOn);
+		details.setRoomName(payload.getDetails().getRoomName());
+		details.setUserEmail(email);
 
-		RoomDTO room = roomService.sendRoomSensorValue(details, email);
+		RoomDTO room = roomService.sendRoomSensorValue(details);
 		responseDTO.setUpdatedRoom(room);
 
 		return responseDTO;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public List<RevisionDetailsDTO> getRevisions(String id) {
 		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Notification.class, true)

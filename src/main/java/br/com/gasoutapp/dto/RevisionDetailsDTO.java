@@ -1,8 +1,8 @@
 package br.com.gasoutapp.dto;
 
-import lombok.Data;
+import lombok.Setter;
 
-@Data
+@Setter
 public class RevisionDetailsDTO {
 	Object entity;
 	Object revisionDetails;

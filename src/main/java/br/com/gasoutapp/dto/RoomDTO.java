@@ -8,9 +8,11 @@ import lombok.Data;
 public class RoomDTO {
 	private String id;
 	private RoomNameEnum name;
-	private String userEmail;
 	private Long sensorValue;
 	private UserDTO user;
+	private Boolean notificationOn;
+	private Boolean alarmOn;
+	private Boolean sprinklersOn;
 
 	public RoomDTO() {
 	}
@@ -19,11 +21,13 @@ public class RoomDTO {
 		super();
 		this.id = entity.getId();
 		this.name = entity.getName();
-		this.userEmail = entity.getUserEmail();
 		this.sensorValue = entity.getSensorValue();
+		this.notificationOn = entity.isNotificationOn();
+		this.alarmOn = entity.isAlarmOn();
+		this.sprinklersOn = entity.isSprinklersOn();
 
 		if (entity.getUser() != null) {
-			this.user = new UserDTO(entity.getUser().getId());
+			this.user = new UserDTO(entity.getUser().getId(), entity.getUser().getEmail());
 		}
 	}
 }

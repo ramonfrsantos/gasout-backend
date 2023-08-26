@@ -24,6 +24,7 @@ import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import br.com.gasoutapp.dto.RevisionDetailsDTO;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.RoomNameDTO;
+import br.com.gasoutapp.dto.RoomSwitchesDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.exception.AlreadyExistsException;
 import br.com.gasoutapp.exception.NotFoundException;
@@ -54,7 +55,8 @@ public class RoomService {
 	}
 
 	public List<RoomNameDTO> getAllRooms() {
-			return Arrays.asList(RoomNameEnum.values()).stream().map(room -> new RoomNameDTO(room.getId(), room.getDescricao())).toList();
+		return Arrays.asList(RoomNameEnum.values()).stream()
+				.map(room -> new RoomNameDTO(room.getNameId(), room.getNameDescription())).toList();
 	}
 
 	public List<RoomDTO> getAllUserRooms(String login, RoomNameEnum roomName) {
@@ -93,9 +95,12 @@ public class RoomService {
 		Room newRoom = new Room();
 
 		newRoom.setUser(user);
-		newRoom.setName(dto.getName());
+		newRoom.setName(getRoomNameById(dto.getName().getNameId()));
 		newRoom.setUserEmail(user.getEmail());
 		newRoom.setSensorValue(0L);
+		newRoom.setNotificationOn(false);
+		newRoom.setAlarmOn(false);
+		newRoom.setSprinklersOn(false);
 		newRoom = repository.save(newRoom);
 
 		newUserRooms.add(newRoom);
@@ -108,8 +113,10 @@ public class RoomService {
 		return ResponseEntity.created(locationRoom).body(parseToDTO(newRoom));
 	}
 
-	public RoomDTO sendRoomSensorValue(SensorDetailsDTO dto, String login) {
+	public RoomDTO sendRoomSensorValue(SensorDetailsDTO dto) {
 		Room newRoom = new Room();
+
+		String login = dto.getUserEmail();
 
 		User user = userService.findByLogin(login);
 		if (user == null) {
@@ -121,9 +128,25 @@ public class RoomService {
 			if (room.getName() == dto.getRoomName()) {
 				newRoom = room;
 				newRoom.setSensorValue(dto.getSensorValue());
-				newRoom.setAlarmOn(dto.isAlarmOn());
-				newRoom.setNotificationOn(dto.isNotificationOn());
-				newRoom.setSprinklersOn(dto.isSprinklersOn());
+
+				if (dto.getSensorValue() <= 0) {
+					newRoom.setNotificationOn(false);
+					newRoom.setAlarmOn(false);
+					newRoom.setSprinklersOn(false);
+				} else if (dto.getSensorValue() <= 25) {
+					newRoom.setNotificationOn(true);
+					newRoom.setAlarmOn(false);
+					newRoom.setSprinklersOn(false);
+				} else if (dto.getSensorValue() <= 50) {
+					newRoom.setNotificationOn(true);
+					newRoom.setAlarmOn(true);
+					newRoom.setSprinklersOn(false);
+				} else {
+					newRoom.setNotificationOn(true);
+					newRoom.setAlarmOn(true);
+					newRoom.setSprinklersOn(true);
+				}
+
 				repository.save(newRoom);
 			}
 		}
@@ -171,5 +194,46 @@ public class RoomService {
 				.add(AuditEntity.id().eq(id));
 
 		return addKeysToJsonArray(auditQuery.getResultList());
+	}
+
+	public RoomDTO updateSwitches(RoomSwitchesDTO dto) {
+		User user = userService.findByLogin(dto.getUserEmail());
+		RoomNameEnum roomName = getRoomNameById(dto.getRoomNameId());
+		Optional<Room> optRoom = repository.findByUserAndName(user, roomName);
+
+		if (optRoom.isEmpty()) {
+			throw new NotFoundException("Comodo nao cadastrado.");
+		}
+
+		Room room = optRoom.get();
+
+		if (dto.getAlarmOn() != null)
+			room.setAlarmOn(dto.getAlarmOn());
+		if (dto.getNotificationOn() != null)
+			room.setNotificationOn(dto.getNotificationOn());
+		if (dto.getSprinklersOn() != null)
+			room.setSprinklersOn(dto.getSprinklersOn());
+
+		return parseToDTO(repository.save(room));
+	}
+
+	public RoomNameEnum getRoomNameByDescription(String description) {
+		for (RoomNameEnum roomEnum : RoomNameEnum.values()) {
+			if (roomEnum.getNameDescription().toLowerCase().equals(description.toLowerCase())) {
+				return roomEnum;
+			}
+		}
+
+		return null;
+	}
+
+	public RoomNameEnum getRoomNameById(Integer id) {
+		for (RoomNameEnum roomEnum : RoomNameEnum.values()) {
+			if (roomEnum.getNameId() == id) {
+				return roomEnum;
+			}
+		}
+
+		return null;
 	}
 }
