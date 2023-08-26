@@ -26,8 +26,8 @@ public class RoomDTO {
 		this.alarmOn = entity.isAlarmOn();
 		this.sprinklersOn = entity.isSprinklersOn();
 
-		if (entity.getUser() != null) {
-			this.user = new UserDTO(entity.getUser().getId(), entity.getUser().getEmail());
+		if (entity.getUserEmail() != null) {
+			this.user = new UserDTO(entity.getUserEmail());
 		}
 	}
 }

@@ -38,4 +38,8 @@ public class UserDTO {
 		this.name = user.getName();
 		this.email = user.getEmail();
 	}
+
+	public UserDTO(String email) {
+		this.email = email;
+	}
 }

@@ -1,6 +1,6 @@
 package br.com.gasoutapp.service;
 
-import static br.com.gasoutapp.utils.JsonUtil.addKeysToJsonArray;
+import static br.com.gasoutapp.utils.JsonUtil.convertToObjectArray;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.RoomNameEnum;
-import br.com.gasoutapp.dto.RevisionDetailsDTO;
+import br.com.gasoutapp.dto.RevisionDTO;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.RoomNameDTO;
 import br.com.gasoutapp.dto.RoomSwitchesDTO;
@@ -63,7 +63,7 @@ public class RoomService {
 		List<RoomDTO> rooms = new ArrayList<RoomDTO>();
 
 		if (roomName == null) {
-			rooms = parseToDTO(repository.findAllByUser(userService.findByLogin(login)));
+			rooms = parseToDTO(repository.findAllByUserEmail(userService.findByLogin(login).getEmail()));
 		} else {
 			RoomDTO roomDTO = getUserRoomByName(login, roomName);
 			if (roomDTO != null) {
@@ -84,7 +84,7 @@ public class RoomService {
 		}
 		newUser = user;
 
-		List<Room> rooms = repository.findAllByUser(user);
+		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
 		for (Room room : rooms) {
 			if (room.getName().equals(dto.getName())) {
 				throw new AlreadyExistsException("Esse cômodo já foi cadastrado.");
@@ -94,7 +94,6 @@ public class RoomService {
 
 		Room newRoom = new Room();
 
-		newRoom.setUser(user);
 		newRoom.setName(getRoomNameById(dto.getName().getNameId()));
 		newRoom.setUserEmail(user.getEmail());
 		newRoom.setSensorValue(0L);
@@ -123,7 +122,7 @@ public class RoomService {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
 
-		List<Room> rooms = repository.findAllByUser(user);
+		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
 		for (Room room : rooms) {
 			if (room.getName() == dto.getRoomName()) {
 				newRoom = room;
@@ -172,7 +171,7 @@ public class RoomService {
 
 	public RoomDTO getUserRoomByName(String email, RoomNameEnum roomName) {
 		User user = userService.findByLogin(email);
-		Optional<Room> optRoom = repository.findByUserAndName(user, roomName);
+		Optional<Room> optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 
 		if (optRoom.isPresent()) {
 			return parseToDTO(optRoom.get());
@@ -188,18 +187,10 @@ public class RoomService {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<RevisionDetailsDTO> getRevisions(String id) {
-		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Room.class, true)
-				.add(AuditEntity.id().eq(id));
-
-		return addKeysToJsonArray(auditQuery.getResultList());
-	}
-
 	public RoomDTO updateSwitches(RoomSwitchesDTO dto) {
 		User user = userService.findByLogin(dto.getUserEmail());
 		RoomNameEnum roomName = getRoomNameById(dto.getRoomNameId());
-		Optional<Room> optRoom = repository.findByUserAndName(user, roomName);
+		Optional<Room> optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 
 		if (optRoom.isEmpty()) {
 			throw new NotFoundException("Comodo nao cadastrado.");
@@ -235,5 +226,27 @@ public class RoomService {
 		}
 
 		return null;
+	}
+	
+	public List<RevisionDTO> getRevisions(String id) {
+		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Room.class, true)
+				.add(AuditEntity.id().eq(id));
+
+		List<RevisionDTO> details = new ArrayList<RevisionDTO>();
+
+		for (Object revision : auditQuery.getResultList()) {
+			RevisionDTO r = new RevisionDTO();
+
+			Object[] objArray = convertToObjectArray(revision);
+
+			r.setEntity(objArray[0]);
+			r.setRevisionDetails(objArray[1]);
+			r.setRevisionType(objArray[2]);
+			r.setUpdatedAttributes(objArray[3]);
+			
+			details.add(r);
+		}
+
+		return details;
 	}
 }

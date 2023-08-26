@@ -1,6 +1,6 @@
 package br.com.gasoutapp.service;
 
-import static br.com.gasoutapp.utils.JsonUtil.addKeysToJsonArray;
+import static br.com.gasoutapp.utils.JsonUtil.convertToObjectArray;
 import static br.com.gasoutapp.utils.StringUtils.reverseList;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.dto.FirebaseNotificationDTO;
 import br.com.gasoutapp.dto.NotificationDTO;
 import br.com.gasoutapp.dto.PushResponseDTO;
-import br.com.gasoutapp.dto.RevisionDetailsDTO;
+import br.com.gasoutapp.dto.RevisionDTO;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.dto.SensorGasPayloadDTO;
@@ -202,11 +202,24 @@ public class NotificationService {
 		return responseDTO;
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<RevisionDetailsDTO> getRevisions(String id) {
+	public List<RevisionDTO> getRevisions(String id) {
 		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Notification.class, true)
 				.add(AuditEntity.id().eq(id));
 
-		return addKeysToJsonArray(auditQuery.getResultList());
+		List<RevisionDTO> details = new ArrayList<RevisionDTO>();
+
+		for (Object revision : auditQuery.getResultList()) {
+			RevisionDTO r = new RevisionDTO();
+
+			Object[] objArray = convertToObjectArray(revision);
+
+			r.setEntity(objArray[0]);
+			r.setRevisionDetails(objArray[1]);
+			r.setRevisionType(objArray[2]);
+			r.setUpdatedAttributes(objArray[3]);
+			details.add(r);
+		}
+
+		return details;
 	}
 }

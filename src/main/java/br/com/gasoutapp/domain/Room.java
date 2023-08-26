@@ -1,15 +1,11 @@
 package br.com.gasoutapp.domain;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicUpdate;
@@ -17,8 +13,6 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import lombok.Data;
@@ -58,9 +52,4 @@ public class Room {
 
 	@Column(name = "deleted")
 	private boolean deleted;
-
-	@JsonIgnore
-	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = "fk_user")
-	private User user;
 }

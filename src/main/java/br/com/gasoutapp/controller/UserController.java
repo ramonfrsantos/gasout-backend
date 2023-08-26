@@ -31,6 +31,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RestController
 @RequestMapping("users")
 public class UserController extends BaseRestController {
+	
 	@Autowired
 	private UserService service;
 

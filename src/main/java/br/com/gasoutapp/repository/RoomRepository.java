@@ -7,13 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import br.com.gasoutapp.domain.Room;
-import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.RoomNameEnum;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, String> {
 
-	List<Room> findAllByUser(User user);
+	List<Room> findAllByUserEmail(String userEmail);
 
-	Optional<Room> findByUserAndName(User user, RoomNameEnum roomName);
+	Optional<Room> findByUserEmailAndName(String userEmail, RoomNameEnum roomName);
 }

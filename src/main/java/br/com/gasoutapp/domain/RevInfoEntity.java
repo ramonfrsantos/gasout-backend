@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @RevisionEntity(RevisionListener.class)
 @Table(name = "revinfo", catalog = "audit")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class RevEntity {
+public class RevInfoEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

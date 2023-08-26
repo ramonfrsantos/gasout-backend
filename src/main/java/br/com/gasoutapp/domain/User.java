@@ -4,14 +4,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -21,8 +19,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 import org.hibernate.envers.AuditJoinTable;
@@ -68,13 +64,12 @@ public class User {
 	private boolean deleted;
 
 	@AuditJoinTable(name = "aud_t_user_notification", catalog = "audit")
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany
 	@Column(name = "fk_notification")
 	private List<Notification> notifications = new ArrayList<>();
 
 	@AuditJoinTable(name = "aud_t_user_room", catalog = "audit")
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@Fetch(value = FetchMode.SUBSELECT)
+	@OneToMany
 	@Column(name = "fk_room")
 	private List<Room> rooms = new ArrayList<>();
 

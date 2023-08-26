@@ -1,10 +1,11 @@
 package br.com.gasoutapp.service;
 
-import static br.com.gasoutapp.utils.JsonUtil.addKeysToJsonArray;
+import static br.com.gasoutapp.utils.JsonUtil.convertToObjectArray;
 import static br.com.gasoutapp.utils.StringUtils.createRandomCode;
 import static br.com.gasoutapp.utils.StringUtils.normalizeString;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +33,7 @@ import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
 import br.com.gasoutapp.dto.LoginDTO;
-import br.com.gasoutapp.dto.RevisionDetailsDTO;
+import br.com.gasoutapp.dto.RevisionDTO;
 import br.com.gasoutapp.dto.UserDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.exception.UserAlreadyRegisteredException;
@@ -248,12 +249,26 @@ public class UserService {
 		user.setNotifications(newUserNotifications);
 		repository.save(user);
 	}
-	
-	@SuppressWarnings("unchecked")
-	public List<RevisionDetailsDTO> getRevisions(String id) {
+
+	public List<RevisionDTO> getRevisions(String id) {
 		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(User.class, true)
 				.add(AuditEntity.id().eq(id));
 
-		return addKeysToJsonArray(auditQuery.getResultList());
+		List<RevisionDTO> details = new ArrayList<RevisionDTO>();
+
+		for (Object revision : auditQuery.getResultList()) {
+			RevisionDTO r = new RevisionDTO();
+
+			Object[] objArray = convertToObjectArray(revision);
+
+			r.setEntity(objArray[0]);
+			r.setRevisionDetails(objArray[1]);
+			r.setRevisionType(objArray[2]);
+			r.setUpdatedAttributes(objArray[3]);
+			
+			details.add(r);
+		}
+
+		return details;
 	}
 }
