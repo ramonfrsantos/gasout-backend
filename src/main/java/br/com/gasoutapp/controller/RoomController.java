@@ -42,13 +42,13 @@ public class RoomController extends BaseRestController {
 	}
 
 	@GetMapping
-	@Operation(summary = "Buscar todos os quartos", security = @SecurityRequirement(name = "gasoutapp"))
+	@Operation(summary = "Buscar cômodos possíveis para cadastro", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getAllRooms() {
 		return buildResponse(service.getAllRooms());
 	}
 
 	@GetMapping("/find/{id}")
-	@Operation(summary = "Buscar quarto por id", security = @SecurityRequirement(name = "gasoutapp"))
+	@Operation(summary = "Buscar cômodo por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findRoomById(@PathVariable String id) {
 
 		Optional<Room> optRoom = service.findRoomById(id);
@@ -66,13 +66,13 @@ public class RoomController extends BaseRestController {
 	}
 
 	@GetMapping("/{email}")
-	@Operation(summary = "Buscar quartos por email e por nome", security = @SecurityRequirement(name = "gasoutapp"))
+	@Operation(summary = "Buscar cômodos por email e por nome", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getAllUserRooms(@PathVariable String email, @RequestParam(required = false) RoomNameEnum roomName) {
 		return buildResponse(service.getAllUserRooms(email, roomName));
 	}
 
 	@PostMapping
-	@Operation(summary = "Cadastrar quarto", security = @SecurityRequirement(name = "gasoutapp"))
+	@Operation(summary = "Cadastrar cômodo", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO createRoom(@RequestBody RoomDTO dto) {
 		return buildResponse(service.createRoom(dto));
 	}
@@ -84,13 +84,13 @@ public class RoomController extends BaseRestController {
 	}
 
 	@DeleteMapping("/{id}")
-	@Operation(summary = "Excluir quarto por id", security = @SecurityRequirement(name = "gasoutapp"))
+	@Operation(summary = "Excluir cômodo por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO deleteRoom(@PathVariable String id) {
 		return buildResponse(service.deleteRoom(id));
 	}
 	
 	@DeleteMapping("/delete-all")
-	@Operation(summary = "Excluir quartos", security = @SecurityRequirement(name = "gasoutapp"))
+	@Operation(summary = "Excluir cômodos", security = @SecurityRequirement(name = "gasoutapp"))
 	public void deleteAll() {
 		service.deleteAll();
 	}

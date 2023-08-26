@@ -4,6 +4,7 @@ import static br.com.gasoutapp.utils.JsonUtil.addKeysToJsonArray;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import br.com.gasoutapp.dto.RevisionDetailsDTO;
 import br.com.gasoutapp.dto.RoomDTO;
+import br.com.gasoutapp.dto.RoomNameDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.exception.AlreadyExistsException;
 import br.com.gasoutapp.exception.NotFoundException;
@@ -51,8 +53,8 @@ public class RoomService {
 		return new RoomDTO(room);
 	}
 
-	public List<RoomDTO> getAllRooms() {
-		return parseToDTO(repository.findAll());
+	public List<RoomNameDTO> getAllRooms() {
+			return Arrays.asList(RoomNameEnum.values()).stream().map(room -> new RoomNameDTO(room.getId(), room.getDescricao())).toList();
 	}
 
 	public List<RoomDTO> getAllUserRooms(String login, RoomNameEnum roomName) {
