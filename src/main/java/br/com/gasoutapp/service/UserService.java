@@ -1,10 +1,10 @@
 package br.com.gasoutapp.service;
 
+import static br.com.gasoutapp.utils.JsonUtil.addKeysToJsonArray;
 import static br.com.gasoutapp.utils.StringUtils.createRandomCode;
 import static br.com.gasoutapp.utils.StringUtils.normalizeString;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -254,21 +254,6 @@ public class UserService {
 		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(User.class, true)
 				.add(AuditEntity.id().eq(id));
 
-		return addResponseKeys(auditQuery.getResultList());
-	}
-
-	public List<RevisionDetailsDTO> addResponseKeys(List<Object[]> list) {
-		List<RevisionDetailsDTO> details = new ArrayList<RevisionDetailsDTO>();
-
-		for (Object[] revision : list) {
-			RevisionDetailsDTO r = new RevisionDetailsDTO();
-			r.setEntity(revision[0]);
-			r.setRevisionDetails(revision[1]);
-			r.setRevisionType(revision[2]);
-			r.setUpdatedAttributes(revision[3]);
-			details.add(r);
-		}
-
-		return details;
+		return addKeysToJsonArray(auditQuery.getResultList());
 	}
 }

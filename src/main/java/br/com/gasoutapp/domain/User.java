@@ -82,6 +82,7 @@ public class User {
 	@Column(name = "last_update")
 	private Date lastUpdate;
 
+	@AuditJoinTable(name = "aud_t_user_role", catalog = "audit")
 	@ElementCollection
 	@CollectionTable(name = "t_user_role", joinColumns = @JoinColumn(name = "fk_user"))
 	@Enumerated(EnumType.STRING)

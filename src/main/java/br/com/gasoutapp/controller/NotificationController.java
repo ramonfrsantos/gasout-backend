@@ -30,8 +30,15 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RestController
 @RequestMapping("notifications")
 public class NotificationController extends BaseRestController {
+	
 	@Autowired
 	private NotificationService service;
+	
+	@GetMapping("/revisions/{id}")
+	@Operation(summary = "Buscar revisões", security = @SecurityRequirement(name = "gasoutapp"))
+	public BaseResponseDTO getRevisions(@PathVariable String id) {
+		return buildResponse(service.getRevisions(id));
+	}
 
 	@GetMapping
 	@Operation(summary = "Buscar todas as notificações", security = @SecurityRequirement(name = "gasoutapp"))

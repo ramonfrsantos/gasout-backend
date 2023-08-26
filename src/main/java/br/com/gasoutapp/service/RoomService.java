@@ -1,11 +1,16 @@
 package br.com.gasoutapp.service;
 
+import static br.com.gasoutapp.utils.JsonUtil.addKeysToJsonArray;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.query.AuditEntity;
+import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +20,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.domain.enums.RoomNameEnum;
+import br.com.gasoutapp.dto.RevisionDetailsDTO;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.exception.AlreadyExistsException;
@@ -29,6 +35,9 @@ public class RoomService {
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private AuditReader auditReader;
 
 	public List<RoomDTO> parseToDTO(List<Room> list) {
 		return list.stream().map(v -> parseToDTO(v)).collect(Collectors.toList());
@@ -48,16 +57,16 @@ public class RoomService {
 
 	public List<RoomDTO> getAllUserRooms(String login, RoomNameEnum roomName) {
 		List<RoomDTO> rooms = new ArrayList<RoomDTO>();
-		
-		if(roomName == null) {
-			rooms = parseToDTO(repository.findAllByUser(userService.findByLogin(login)));			
+
+		if (roomName == null) {
+			rooms = parseToDTO(repository.findAllByUser(userService.findByLogin(login)));
 		} else {
 			RoomDTO roomDTO = getUserRoomByName(login, roomName);
-			if(roomDTO != null) {
-				rooms.add(roomDTO);				
+			if (roomDTO != null) {
+				rooms.add(roomDTO);
 			}
 		}
-		
+
 		return rooms;
 	}
 
@@ -139,9 +148,9 @@ public class RoomService {
 	public RoomDTO getUserRoomByName(String email, RoomNameEnum roomName) {
 		User user = userService.findByLogin(email);
 		Optional<Room> optRoom = repository.findByUserAndName(user, roomName);
-		
-		if(optRoom.isPresent()) {
-			return parseToDTO(optRoom.get());			
+
+		if (optRoom.isPresent()) {
+			return parseToDTO(optRoom.get());
 		} else {
 			return null;
 		}
@@ -149,8 +158,16 @@ public class RoomService {
 	}
 
 	public void deleteAll() {
-		for(Room room: repository.findAll()) {
+		for (Room room : repository.findAll()) {
 			repository.delete(room);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<RevisionDetailsDTO> getRevisions(String id) {
+		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Room.class, true)
+				.add(AuditEntity.id().eq(id));
+
+		return addKeysToJsonArray(auditQuery.getResultList());
 	}
 }

@@ -1,5 +1,6 @@
 package br.com.gasoutapp.service;
 
+import static br.com.gasoutapp.utils.JsonUtil.addKeysToJsonArray;
 import static br.com.gasoutapp.utils.StringUtils.reverseList;
 
 import java.io.IOException;
@@ -11,6 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.query.AuditEntity;
+import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +27,7 @@ import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.dto.FirebaseNotificationDTO;
 import br.com.gasoutapp.dto.NotificationDTO;
 import br.com.gasoutapp.dto.PushResponseDTO;
+import br.com.gasoutapp.dto.RevisionDetailsDTO;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.SensorDetailsDTO;
 import br.com.gasoutapp.dto.SensorGasPayloadDTO;
@@ -40,6 +45,9 @@ public class NotificationService {
 
 	@Autowired
 	private RoomService roomService;
+	
+	@Autowired
+	private AuditReader auditReader;
 
 	@Autowired
 	private FirebaseService firebaseService;
@@ -209,5 +217,13 @@ public class NotificationService {
 		responseDTO.setUpdatedRoom(room);
 
 		return responseDTO;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<RevisionDetailsDTO> getRevisions(String id) {
+		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Notification.class, true)
+				.add(AuditEntity.id().eq(id));
+
+		return addKeysToJsonArray(auditQuery.getResultList());
 	}
 }
