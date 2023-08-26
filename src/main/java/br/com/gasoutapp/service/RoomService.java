@@ -215,7 +215,7 @@ public class RoomService {
 			}
 		}
 
-		return null;
+		throw new NotFoundException("Nao foi encontrado nenhum comodo com esse nome.");
 	}
 
 	public RoomNameEnum getRoomNameById(Integer id) {
@@ -225,7 +225,7 @@ public class RoomService {
 			}
 		}
 
-		return null;
+		throw new NotFoundException("Nao foi encontrado nenhum comodo com esse id.");
 	}
 	
 	public List<RevisionDTO> getRevisions(String id) {

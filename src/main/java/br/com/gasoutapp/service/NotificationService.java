@@ -70,7 +70,7 @@ public class NotificationService {
 
 	public List<NotificationDTO> getAllRecentNotifications(String login) {
 		User user = userService.findByLogin(login);
-		List<Notification> notifications = notificationRepository.findAllByUserOrderByDateAsc(user);
+		List<Notification> notifications = notificationRepository.findAllByUserEmailOrderByDateAsc(user.getEmail());
 		reverseList(notifications);
 
 		return parseToDTO(notifications);
@@ -79,13 +79,13 @@ public class NotificationService {
 	public ResponseEntity<NotificationDTO> createNotification(NotificationDTO dto) {
 		List<Notification> newUserNotifications = new ArrayList<>();
 		User newUser;
-		User user = userService.findByLogin(dto.getEmail());
+		User user = userService.findByLogin(dto.getUserEmail());
 		if (user == null) {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
 		newUser = user;
 
-		List<Notification> notifications = notificationRepository.findAllByUserOrderByDateAsc(user);
+		List<Notification> notifications = notificationRepository.findAllByUserEmailOrderByDateAsc(user.getEmail());
 		if (notifications.size() >= 10) {
 			setAllUserNotificationsNull(notifications, user);
 		} else {
@@ -94,7 +94,7 @@ public class NotificationService {
 
 		Notification newNotification = new Notification();
 
-		newNotification.setUser(user);
+		newNotification.setUserEmail(user.getEmail());
 		newNotification.setTitle(dto.getTitle());
 		newNotification.setMessage(dto.getMessage());
 		newNotification.setDate(new Date());
@@ -104,7 +104,7 @@ public class NotificationService {
 
 		userService.setUserNotifications(newUserNotifications, newUser);
 
-		List<Notification> notificationsUserNull = notificationRepository.findAllByUserOrderByDateAsc(null);
+		List<Notification> notificationsUserNull = notificationRepository.findAllByUserEmailOrderByDateAsc(null);
 		if (notificationsUserNull.size() > 0) {
 			for (Notification notification : notificationsUserNull) {
 				notification.setDeleted(true);
@@ -138,7 +138,7 @@ public class NotificationService {
 			userService.setUserNotifications(newNotificationsList, newUser);
 		}
 		for (Notification notification : notifications) {
-			notification.setUser(null);
+			notification.setUserEmail(null);
 			notificationRepository.save(notification);
 		}
 	}
@@ -172,7 +172,7 @@ public class NotificationService {
 		String email = payload.getDetails().getUserEmail();
 
 		NotificationDTO notificationDTO = new NotificationDTO();
-		notificationDTO.setEmail(email);
+		notificationDTO.setUserEmail(email);
 		notificationDTO.setMessage(body);
 		notificationDTO.setTitle(title);
 

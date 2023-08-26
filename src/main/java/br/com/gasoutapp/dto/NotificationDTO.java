@@ -11,7 +11,7 @@ public class NotificationDTO {
 	private String message;
 	private String title;
 	private Date date;
-	private String email;
+	private String userEmail;
 
 	public NotificationDTO() {
 	}
@@ -21,9 +21,6 @@ public class NotificationDTO {
 		this.message = entity.getMessage();
 		this.title = entity.getTitle();
 		this.date = entity.getDate();
-
-		if (entity.getUser() != null) {
-			this.email = entity.getUser().getEmail();
-		}
+		this.userEmail = entity.getUserEmail();
 	}
 }
