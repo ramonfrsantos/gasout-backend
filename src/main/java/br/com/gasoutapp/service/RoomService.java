@@ -59,12 +59,14 @@ public class RoomService {
 				.map(room -> new RoomNameDTO(room.getNameId(), room.getNameDescription())).toList();
 	}
 
-	public List<RoomDTO> getAllUserRooms(String login, RoomNameEnum roomName) {
+	public List<RoomDTO> getAllUserRooms(String login, Integer nameId) {
 		List<RoomDTO> rooms = new ArrayList<RoomDTO>();
 
-		if (roomName == null) {
+		if (nameId == null || nameId == 0) {
 			rooms = parseToDTO(repository.findAllByUserEmail(userService.findByLogin(login).getEmail()));
 		} else {
+			RoomNameEnum roomName = getRoomNameById(nameId);
+			
 			RoomDTO roomDTO = getUserRoomByName(login, roomName);
 			if (roomDTO != null) {
 				rooms.add(roomDTO);
@@ -86,7 +88,7 @@ public class RoomService {
 
 		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
 		for (Room room : rooms) {
-			if (room.getName().equals(dto.getName())) {
+			if (room.getName().getNameId() == dto.getDetails().getNameId()) {
 				throw new AlreadyExistsException("Esse cômodo já foi cadastrado.");
 			}
 		}
@@ -94,7 +96,7 @@ public class RoomService {
 
 		Room newRoom = new Room();
 
-		newRoom.setName(getRoomNameById(dto.getName().getNameId()));
+		newRoom.setName(getRoomNameById(dto.getDetails().getNameId()));
 		newRoom.setUserEmail(user.getEmail());
 		newRoom.setSensorValue(0L);
 		newRoom.setNotificationOn(false);
@@ -176,7 +178,7 @@ public class RoomService {
 		if (optRoom.isPresent()) {
 			return parseToDTO(optRoom.get());
 		} else {
-			return null;
+			throw new NotFoundException("Comodo nao cadastrado.");
 		}
 
 	}
@@ -189,7 +191,7 @@ public class RoomService {
 
 	public RoomDTO updateSwitches(RoomSwitchesDTO dto) {
 		User user = userService.findByLogin(dto.getUserEmail());
-		RoomNameEnum roomName = getRoomNameById(dto.getRoomNameId());
+		RoomNameEnum roomName = getRoomNameById(dto.getNameId());
 		Optional<Room> optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 
 		if (optRoom.isEmpty()) {

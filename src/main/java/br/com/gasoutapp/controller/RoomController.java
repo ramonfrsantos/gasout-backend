@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gasoutapp.domain.Room;
-import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import br.com.gasoutapp.dto.BaseResponseDTO;
 import br.com.gasoutapp.dto.RoomDTO;
 import br.com.gasoutapp.dto.RoomSwitchesDTO;
@@ -69,10 +68,10 @@ public class RoomController extends BaseRestController {
 	}
 
 	@GetMapping("/{email}")
-	@Operation(summary = "Buscar cômodos por email e por nome", security = @SecurityRequirement(name = "gasoutapp"))
+	@Operation(summary = "Buscar cômodos por email e por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getAllUserRooms(@PathVariable String email,
-			@RequestParam(required = false) RoomNameEnum roomName) {
-		return buildResponse(service.getAllUserRooms(email, roomName));
+			@RequestParam(required = false) Integer roomNameId) {
+		return buildResponse(service.getAllUserRooms(email, roomNameId));
 	}
 
 	@PostMapping

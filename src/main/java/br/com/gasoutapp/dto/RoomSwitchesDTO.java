@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RoomSwitchesDTO {
 	@NotNull
-	private Integer roomNameId;
+	private Integer nameId;
 	@Email
 	private String userEmail;
 	private Boolean notificationOn;
