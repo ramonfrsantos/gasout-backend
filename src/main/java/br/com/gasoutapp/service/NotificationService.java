@@ -23,6 +23,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.gasoutapp.config.security.CriptexCustom;
 import br.com.gasoutapp.domain.Notification;
+import br.com.gasoutapp.domain.Room;
 import br.com.gasoutapp.domain.User;
 import br.com.gasoutapp.dto.FirebaseNotificationDTO;
 import br.com.gasoutapp.dto.NotificationDTO;
@@ -153,18 +154,18 @@ public class NotificationService {
 		String title = "";
 		String body = "";
 
-		Long sensorValue = payload.getDetails().getSensorValue();
+		Long gasSensorValue = payload.getDetails().getGasSensorValue();
 
-		if (sensorValue <= 0) {
+		if (gasSensorValue <= 0) {
 			title = "Apenas atualização de status...";
 			body = "Tudo em paz! Sem vazamento de gás no momento.";
-		} else if (sensorValue > 0 && sensorValue < 25) {
+		} else if (gasSensorValue > 0 && gasSensorValue < 25) {
 			title = "🚨 Atenção!";
 			body = "Detectamos nível BAIXO de vazamento em seu local!";
-		} else if (sensorValue >= 25 && sensorValue < 51) {
+		} else if (gasSensorValue >= 25 && gasSensorValue < 51) {
 			title = "🚨🚨 Detectamos nível MÉDIO de vazamento em seu local! ";
 			body = "Verifique as condições de monitoramento do seu cômodo...";
-		} else if (sensorValue >= 51) {
+		} else if (gasSensorValue >= 51) {
 			title = "🚨🚨🚨 Detectamos nível ALTO de vazamento em seu local!";
 			body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
 		}
@@ -175,26 +176,41 @@ public class NotificationService {
 		notificationDTO.setUserEmail(email);
 		notificationDTO.setMessage(body);
 		notificationDTO.setTitle(title);
+		
+		SensorDetailsDTO details = new SensorDetailsDTO();
+		details.setGasSensorValue(gasSensorValue);
+		details.setUmiditySensorValue(payload.getDetails().getUmiditySensorValue());
+		details.setRoomName(payload.getDetails().getRoomName());
+		details.setUserEmail(email);
 
 		User user = userService.findByLogin(email);
+		
+		Room userRoom = new Room();
+		
+		List<Room> rooms = roomService.findAllByUserEmail(user.getEmail());
+		for (Room room : rooms) {
+			if (room.getName() == details.getRoomName()) {
+				userRoom = room;
+			}
+		}
 
 		List<String> ids = new ArrayList<>();
 		ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
-
-		FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();
-		firebaseNotificationDTO.setNotification(notificationDTO);
-		firebaseNotificationDTO.setRegistration_ids(ids);
-
-		firebaseService.createFirebaseNotification(firebaseNotificationDTO);
-		responseDTO.setPushNotificationSent(true);
-
-		createNotification(notificationDTO);
-		responseDTO.setNotificationCreated(true);
-
-		SensorDetailsDTO details = new SensorDetailsDTO();
-		details.setSensorValue(sensorValue);
-		details.setRoomName(payload.getDetails().getRoomName());
-		details.setUserEmail(email);
+		
+		if(userRoom != null && userRoom.isNotificationOn()) {
+			FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();
+			firebaseNotificationDTO.setNotification(notificationDTO);
+			firebaseNotificationDTO.setRegistration_ids(ids);
+			
+			firebaseService.createFirebaseNotification(firebaseNotificationDTO);
+			responseDTO.setPushNotificationSent(true);
+			
+			createNotification(notificationDTO);
+			responseDTO.setNotificationCreated(true);			
+		} else {
+			responseDTO.setPushNotificationSent(false);
+			responseDTO.setNotificationCreated(false);						
+		}
 
 		RoomDTO room = roomService.sendRoomSensorValue(details);
 		responseDTO.setUpdatedRoom(room);

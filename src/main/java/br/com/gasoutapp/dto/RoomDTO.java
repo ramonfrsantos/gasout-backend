@@ -7,7 +7,8 @@ import lombok.Data;
 public class RoomDTO {
 	private String id;
 	private RoomNameDTO details;
-	private Long sensorValue;
+	private Long gasSensorValue;
+	private Long umiditySensorValue;
 	private UserDTO user;
 	private Boolean notificationOn;
 	private Boolean alarmOn;
@@ -20,7 +21,8 @@ public class RoomDTO {
 		super();
 		this.id = entity.getId();
 		this.details = new RoomNameDTO(entity.getName());
-		this.sensorValue = entity.getSensorValue();
+		this.gasSensorValue = entity.getGasSensorValue();
+		this.umiditySensorValue = entity.getUmiditySensorValue();
 		this.notificationOn = entity.isNotificationOn();
 		this.alarmOn = entity.isAlarmOn();
 		this.sprinklersOn = entity.isSprinklersOn();

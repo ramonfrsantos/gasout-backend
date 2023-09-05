@@ -8,11 +8,13 @@ import lombok.Data;
 
 @Data
 public class SensorDetailsDTO {
-	
+
 	@Email
 	private String userEmail;
 	@NotNull
 	private RoomNameEnum roomName;
 	@NotNull
-	private Long sensorValue;
+	private Long gasSensorValue;
+
+	private Long umiditySensorValue;
 }

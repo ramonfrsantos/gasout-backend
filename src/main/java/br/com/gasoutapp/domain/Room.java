@@ -44,8 +44,11 @@ public class Room {
 	@Column(name = "sprinklers_on")
 	private boolean sprinklersOn;
 
-	@Column(name = "sensor_value")
-	private Long sensorValue;
+	@Column(name = "gas_sensor_value")
+	private Long gasSensorValue;
+	
+	@Column(name = "umidity_sensor_value")
+	private Long umiditySensorValue;
 
 	@Column(name = "user_email")
 	private String userEmail;

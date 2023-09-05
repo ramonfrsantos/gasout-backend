@@ -76,11 +76,11 @@ public class RoomService {
 		return rooms;
 	}
 
-	public ResponseEntity<RoomDTO> createRoom(RoomDTO dto) {
+	public ResponseEntity<RoomDTO> createRoom(RoomNameEnum roomName, String email) {
 		List<Room> newUserRooms;
 		User newUser;
 
-		User user = userService.findByLogin(dto.getUser().getEmail());
+		User user = userService.findByLogin(email);
 		if (user == null) {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
@@ -88,7 +88,7 @@ public class RoomService {
 
 		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
 		for (Room room : rooms) {
-			if (room.getName().getNameId() == dto.getDetails().getNameId()) {
+			if (room.getName() == roomName) {
 				throw new AlreadyExistsException("Esse cômodo já foi cadastrado.");
 			}
 		}
@@ -96,9 +96,10 @@ public class RoomService {
 
 		Room newRoom = new Room();
 
-		newRoom.setName(getRoomNameById(dto.getDetails().getNameId()));
+		newRoom.setName(roomName);
 		newRoom.setUserEmail(user.getEmail());
-		newRoom.setSensorValue(0L);
+		newRoom.setGasSensorValue(0L);
+		newRoom.setUmiditySensorValue(0L);
 		newRoom.setNotificationOn(false);
 		newRoom.setAlarmOn(false);
 		newRoom.setSprinklersOn(false);
@@ -128,17 +129,18 @@ public class RoomService {
 		for (Room room : rooms) {
 			if (room.getName() == dto.getRoomName()) {
 				newRoom = room;
-				newRoom.setSensorValue(dto.getSensorValue());
+				newRoom.setUmiditySensorValue(dto.getUmiditySensorValue());
+				newRoom.setGasSensorValue(dto.getGasSensorValue());
 
-				if (dto.getSensorValue() <= 0) {
+				if (dto.getGasSensorValue() <= 0) {
 					newRoom.setNotificationOn(false);
 					newRoom.setAlarmOn(false);
 					newRoom.setSprinklersOn(false);
-				} else if (dto.getSensorValue() <= 25) {
+				} else if (dto.getGasSensorValue() <= 25) {
 					newRoom.setNotificationOn(true);
 					newRoom.setAlarmOn(false);
 					newRoom.setSprinklersOn(false);
-				} else if (dto.getSensorValue() <= 50) {
+				} else if (dto.getGasSensorValue() <= 50) {
 					newRoom.setNotificationOn(true);
 					newRoom.setAlarmOn(true);
 					newRoom.setSprinklersOn(false);
@@ -250,5 +252,9 @@ public class RoomService {
 		}
 
 		return details;
+	}
+
+	public List<Room> findAllByUserEmail(String email) {
+		return repository.findAllByUserEmail(email);
 	}
 }
