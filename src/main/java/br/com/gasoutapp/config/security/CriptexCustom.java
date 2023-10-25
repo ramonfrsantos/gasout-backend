@@ -13,7 +13,7 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import lombok.extern.java.Log;
 
 /**
- * @author Leaonrdo Barros, modified by Ramon Santos
+ * @author Ramon Santos
  */
 @Log
 public class CriptexCustom {

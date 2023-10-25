@@ -14,4 +14,9 @@ public class BaseResponseDTO {
 
 	private Object data;
 	private String message;
+	
+	public BaseResponseDTO(String dataHora, String message) {
+		this.data = dataHora;
+		this.message = message;
+	}
 }
