@@ -1,17 +1,15 @@
 package br.com.gasoutapp.config.security;
 
-import java.util.Date;
-
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginResultDTO {
 
-	private String userId;
 	private String login;
 	private String token;
-	private String tokenType;
-	private String refreshToken;
 	private String userName;
-	private Date tokenExpiresIn;
 }

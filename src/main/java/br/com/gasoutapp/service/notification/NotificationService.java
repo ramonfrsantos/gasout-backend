@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import br.com.gasoutapp.config.security.CriptexCustom;
 import br.com.gasoutapp.domain.notification.Notification;
 import br.com.gasoutapp.domain.room.Room;
 import br.com.gasoutapp.domain.user.User;
@@ -198,7 +197,7 @@ public class NotificationService {
 		}
 
 		List<String> ids = new ArrayList<>();
-		ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
+		ids.add(user.getTokenFirebase());
 		
 		if(userRoom != null && userRoom.isNotificationOn()) {
 			FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();

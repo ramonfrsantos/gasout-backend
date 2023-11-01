@@ -1,93 +1,65 @@
 package br.com.gasoutapp.service.auth;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import br.com.gasoutapp.config.security.CriptexCustom;
-import br.com.gasoutapp.config.security.LoginResultDTO;
-import br.com.gasoutapp.config.security.TokenService;
-import br.com.gasoutapp.config.security.UserJWT;
-import br.com.gasoutapp.domain.enums.UserTypeEnum;
-import br.com.gasoutapp.domain.user.User;
-import br.com.gasoutapp.dto.user.UserDTO;
-import br.com.gasoutapp.exception.NotFoundException;
-import br.com.gasoutapp.exception.WrongPasswordException;
 import br.com.gasoutapp.service.user.UserService;
 
 @Service
-public class AuthService {
+public class AuthService implements UserDetailsService {
 
 	@Autowired
 	private UserService userService;
 
-	@Autowired
-	private TokenService tokenService;
+//	public String checkIfAdminExists() {
+//		List<UserTypeEnum> roles = new ArrayList<UserTypeEnum>();
+//		roles.add(UserTypeEnum.ADMIN);
+//
+//		List<User> admins = userService.findAllByRoles(UserTypeEnum.ADMIN);
+//		if (admins == null || admins.size() == 0) {
+//			User user = userService.create(new UserDTO(adminName, adminEmail, adminPassword));
+//
+//			String token = "";
+//
+//			try {
+//				token = this.login(user.getLogin(), CriptexCustom.decrypt(user.getPassword()), null).getToken();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//
+//			return token;
+//		} else {
+//			return "Usuário [ADMIN] já existe no sistema.";
+//		}
+//	}
 
-	@Value("${spring.mail.username}")
-	private String companyEmail;
+//	@ExceptionHandler({ Exception.class })
+//	public LoginResultDTO login(String login, String password, String tokenFirebase) throws Exception {
+//		if (password.length() < 6) {
+//			throw new WrongPasswordException();
+//		}
+//		
+//		User user = userService.findByLoginAndPassword(login, password);
+//		if (user == null) {
+//			User userLogin = userService.findByLogin(login);
+//
+//			if (userLogin == null) {
+//				throw new NotFoundException("Dados de login incorretos.");
+//			} else if (!userLogin.getPassword().equals(password)) {
+//				throw new WrongPasswordException();
+//			} else {
+//				throw new NotFoundException("Usuario nao encontrado.");
+//			}
+//		} else {
+//			return userService.getDtoByUser(user, tokenFirebase);
+//		}
+//	}
 
-	@Value("${user.admin.email}")
-	private String adminEmail;
-
-	@Value("${user.admin.password}")
-	private String adminPassword;
-
-	@Value("${user.admin.name}")
-	private String adminName;
-
-	public String checkIfAdminExists() {
-		List<UserTypeEnum> roles = new ArrayList<UserTypeEnum>();
-		roles.add(UserTypeEnum.ADMIN);
-
-		List<User> admins = userService.findAllByRoles(UserTypeEnum.ADMIN);
-		if (admins == null || admins.size() == 0) {
-			User user = userService.create(new UserDTO(adminName, adminEmail, adminPassword));
-
-			String token = "";
-
-			try {
-				token = this.login(user.getLogin(), CriptexCustom.decrypt(user.getPassword()), null).getToken();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			return token;
-		} else {
-			return "Usuário [ADMIN] já existe no sistema.";
-		}
-	}
-
-	@ExceptionHandler({ Exception.class })
-	public LoginResultDTO login(String login, String password, String tokenFirebase) throws Exception {
-		if (password.length() < 6) {
-			throw new WrongPasswordException();
-		}
-		password = CriptexCustom.encrypt(password);
-		User user = userService.findByLoginAndPassword(login, password);
-		User userLogin = userService.findByLogin(login);
-		if (user == null) {
-			if (userLogin == null) {
-				throw new NotFoundException("Dados de login incorretos.");
-			} else if (!userLogin.getPassword().equals(password)) {
-				throw new WrongPasswordException();
-			} else {
-				throw new NotFoundException("Usuario nao encontrado.");
-			}
-		} else {
-			return userService.getDtoByUser(user, tokenFirebase);
-		}
-	}
-
-	public UserJWT getUserByToken(String token) {
-		return tokenService.getUserJWTFromToken(token);
-	}
-
-	public LoginResultDTO refreshToken(String refreshToken) {
-		return tokenService.refreshToken(refreshToken);
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		return userService.findByLogin(username);
 	}
 }

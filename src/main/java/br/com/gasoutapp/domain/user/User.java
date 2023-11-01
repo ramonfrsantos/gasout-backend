@@ -1,8 +1,10 @@
 package br.com.gasoutapp.domain.user;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -24,6 +26,9 @@ import org.hibernate.annotations.Where;
 import org.hibernate.envers.AuditJoinTable;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
 import br.com.gasoutapp.domain.notification.Notification;
@@ -37,7 +42,9 @@ import lombok.Data;
 @AuditTable(value = "aud_t_user", catalog = "audit")
 @Table(name = "t_user")
 @Where(clause = "deleted = false")
-public class User {
+public class User implements UserDetails {
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(generator = "uuid2")
 	@GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
@@ -85,5 +92,43 @@ public class User {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "role")
 	private List<UserTypeEnum> roles = new ArrayList<>();
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return getRoles().stream().map(role -> {
+			switch (role) {
+			case ADMIN:
+				return new SimpleGrantedAuthority("ROLE_ADMIN");
+
+			default:
+				return new SimpleGrantedAuthority("ROLE_USER");
+			}
+		}).collect(Collectors.toList());
+	}
+
+	@Override
+	public String getUsername() {
+		return getEmail();
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return true;
+	}
 
 }

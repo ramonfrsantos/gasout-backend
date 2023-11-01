@@ -25,9 +25,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import br.com.gasoutapp.config.security.CriptexCustom;
-import br.com.gasoutapp.config.security.LoginResultDTO;
-import br.com.gasoutapp.config.security.TokenService;
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
 import br.com.gasoutapp.domain.notification.Notification;
 import br.com.gasoutapp.domain.room.Room;
@@ -44,9 +41,6 @@ public class UserService {
 
 	@Autowired
 	private UserRepository repository;
-
-	@Autowired
-	private TokenService tokenService;
 
 	@Autowired
 	private JavaMailSender mailSender;
@@ -86,7 +80,7 @@ public class UserService {
 		newUser.setLogin(userDTO.getEmail());
 		newUser.setLastUpdate(new Date());
 
-		String password = CriptexCustom.encrypt(userDTO.getPassword());
+		String password = userDTO.getPassword();
 
 		newUser.setPassword(password);
 
@@ -183,7 +177,7 @@ public class UserService {
 	public UserDTO refreshPassword(LoginDTO dto) {
 		User newUser = findByEmail(dto.getLogin());
 		if (dto.getPassword() != null) {
-			newUser.setPassword(CriptexCustom.encrypt(dto.getPassword()));
+			newUser.setPassword(dto.getPassword());
 			repository.save(newUser);
 		}
 
@@ -196,21 +190,6 @@ public class UserService {
 
 	public List<User> findAllByRoles(UserTypeEnum userType) {
 		return repository.findAllByRoles(userType);
-	}
-
-	public LoginResultDTO getDtoByUser(User user, String tokenFirebase) {
-		LoginResultDTO dto = this.tokenService.createTokenForUser(user);
-
-		dto.setUserId(user.getId());
-		if (user.getName() != null && !user.getName().equals("")) {
-			dto.setUserName(normalizeString(user.getName()));
-		}
-
-		user.setTokenFirebase(CriptexCustom.encrypt(tokenFirebase));
-
-		repository.save(user);
-
-		return dto;
 	}
 
 	public User findByLogin(String login) {

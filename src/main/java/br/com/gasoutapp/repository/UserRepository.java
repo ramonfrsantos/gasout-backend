@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Repository;
 
 import br.com.gasoutapp.domain.enums.UserTypeEnum;
@@ -23,4 +24,6 @@ public interface UserRepository extends JpaRepository<User, String> {
 	public List<User> findAllByEmail(String login);
 
 	public List<User> findAllByRoles(UserTypeEnum role);
+
+	public UserDetails findUserByLogin(String login);
 }

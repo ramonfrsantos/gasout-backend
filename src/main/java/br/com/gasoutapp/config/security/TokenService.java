@@ -1,85 +1,59 @@
 package br.com.gasoutapp.config.security;
 
-import static br.com.gasoutapp.utils.DateUtils.differenceInSeconds;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+
 import br.com.gasoutapp.domain.user.User;
-import br.com.gasoutapp.exception.NotFoundException;
-import br.com.gasoutapp.repository.UserRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 @Service
 public class TokenService {
 
-	final int HORAS_TIMEOUT = 1 * 4 * 30 * 24;
+	final int HORAS_TIMEOUT = 2;
+	
+	@Value("{api.security.token.secret}")
+	private String secret;
 
-	@Autowired
-	private UserRepository repository;
-
-	public LoginResultDTO createTokenForUser(User user) {
-
-		LoginResultDTO dto = new LoginResultDTO();
-		dto.setUserId(user.getId());
-		dto.setUserName(user.getName());
-		dto.setLogin(user.getLogin());
-
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(new Date());
-
-		calendar.add(Calendar.HOUR, HORAS_TIMEOUT);
-
-		String token = Jwts.builder().claim("id", user.getId()).claim("roles", user.getRoles())
-				.setSubject(user.getLogin()).setExpiration(calendar.getTime())
-				.signWith(SignatureAlgorithm.HS512, SecurityFilter.SECRET).compact();
-		dto.setToken(CriptexCustom.encrypt(token));
-
-		String refreshToken = Jwts.builder().claim("id", user.getId()).setSubject(user.getLogin())
-				.signWith(SignatureAlgorithm.HS512, SecurityFilter.SECRET).compact();
-		dto.setRefreshToken(CriptexCustom.encrypt(refreshToken));
-
-		dto.setTokenExpiresIn(calendar.getTime());
-		dto.setTokenType("Bearer");
-
-		return dto;
-	}
-
-	public LoginResultDTO refreshToken(String refreshToken) {
-		refreshToken = refreshToken.replace("Bearer ", "");
-		refreshToken = CriptexCustom.decrypt(refreshToken);
-		Claims claim = Jwts.parser().setSigningKey(SecurityFilter.SECRET).parseClaimsJws(refreshToken).getBody();
-		Optional<User> usuario = repository.findById(claim.get("id", String.class));
-		if (usuario.isPresent()) {
-			return createTokenForUser(usuario.get());
+	public String generateToken(User user) {
+		try {
+			Algorithm algorithm = Algorithm.HMAC256(secret);
+			
+			String token = JWT.create()
+					.withIssuer("auth-api")
+					.withSubject(user.getLogin())
+					.withExpiresAt(generateExpirationDate())
+					.sign(algorithm);
+			
+			return token;
+		} catch(JWTCreationException ex) {
+			throw new RuntimeException("Error while generating token", ex);
 		}
-
-		throw new NotFoundException("Usuario não encontrado.");
 	}
-
-	public UserJWT getUserJWTFromToken(String token) {
-		token = token.replace("Bearer ", "");
-		token = CriptexCustom.decrypt(token);
-		Claims claim = Jwts.parser().setSigningKey(SecurityFilter.SECRET).parseClaimsJws(token).getBody();
-
-		Long expiresIn = differenceInSeconds(new Date(), claim.getExpiration());
-
-		return new UserJWT(claim.get("id", String.class), claim.getSubject(), expiresIn, isValidToken(claim));
-	}
-
-	public boolean isValidToken(Claims claim) {
-		Optional<User> user = repository.findByLogin(claim.getSubject());
-
-		if (user.isPresent()) {
-			return true;
+	
+	public String validateToken(String token) {
+		try {
+			Algorithm algorithm = Algorithm.HMAC256(secret);
+			return JWT.require(algorithm)
+					.withIssuer("auth-api")
+					.build()
+					.verify(token)
+					.getSubject();
+		} catch(JWTVerificationException ex) {
+			return "";
 		}
-
-		return false;
 	}
+	
+	private Instant generateExpirationDate() {
+		return LocalDateTime.now().plusHours(HORAS_TIMEOUT).toInstant(ZoneOffset.of("-03:00"));
+	}
+
+	
 }
