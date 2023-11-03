@@ -132,7 +132,16 @@ public class RoomService {
 				newRoom = room;
 				newRoom.setUmiditySensorValue(dto.getUmiditySensorValue());
 				newRoom.setGasSensorValue(dto.getGasSensorValue());
-
+				
+				List<Long> gasValues = newRoom.getRecentGasSensorValues();
+				
+				if(gasValues.size() >= 10) {
+					gasValues.remove(0);
+					gasValues.add(dto.getGasSensorValue());					
+				} else {
+					gasValues.add(dto.getGasSensorValue());										
+				}
+				
 				if (dto.getGasSensorValue() <= 0) {
 					newRoom.setNotificationOn(false);
 					newRoom.setAlarmOn(false);

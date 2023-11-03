@@ -1,5 +1,7 @@
 package br.com.gasoutapp.dto.room;
 
+import java.util.List;
+
 import br.com.gasoutapp.domain.room.Room;
 import br.com.gasoutapp.dto.user.UserDTO;
 import lombok.Data;
@@ -14,6 +16,7 @@ public class RoomDTO {
 	private Boolean notificationOn;
 	private Boolean alarmOn;
 	private Boolean sprinklersOn;
+	private List<Long> recentGasSensorValues;
 
 	public RoomDTO() {
 	}
@@ -27,6 +30,7 @@ public class RoomDTO {
 		this.notificationOn = entity.isNotificationOn();
 		this.alarmOn = entity.isAlarmOn();
 		this.sprinklersOn = entity.isSprinklersOn();
+		this.recentGasSensorValues = entity.getRecentGasSensorValues();
 
 		if (entity.getUserEmail() != null) {
 			this.user = new UserDTO(entity.getUserEmail());
