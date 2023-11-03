@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.gasoutapp.config.security.CriptexCustom;
+import br.com.gasoutapp.domain.enums.RoomNameEnum;
 import br.com.gasoutapp.domain.notification.Notification;
 import br.com.gasoutapp.domain.room.Room;
 import br.com.gasoutapp.domain.user.User;
@@ -30,7 +31,7 @@ import br.com.gasoutapp.dto.notification.FirebaseNotificationDTO;
 import br.com.gasoutapp.dto.notification.NotificationDTO;
 import br.com.gasoutapp.dto.notification.PushResponseDTO;
 import br.com.gasoutapp.dto.room.RoomDTO;
-import br.com.gasoutapp.dto.room.SensorDetailsDTO;
+import br.com.gasoutapp.dto.room.SensorMessageDTO;
 import br.com.gasoutapp.dto.room.SensorGasPayloadDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.repository.NotificationRepository;
@@ -152,12 +153,14 @@ public class NotificationService {
 	}
 
 	public PushResponseDTO sendPush(SensorGasPayloadDTO payload) throws IOException, URISyntaxException {
+		RoomNameEnum roomName = roomService.getRoomNameById(payload.getMessage().getRoomNameId()); 
+		
 		PushResponseDTO responseDTO = new PushResponseDTO();
 
 		String title = "";
 		String body = "";
 
-		Long gasSensorValue = payload.getDetails().getGasSensorValue();
+		Long gasSensorValue = payload.getMessage().getGasSensorValue();
 
 		if (gasSensorValue <= 0) {
 			title = "Apenas atualização de status...";
@@ -173,17 +176,17 @@ public class NotificationService {
 			body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
 		}
 
-		String email = payload.getDetails().getUserEmail();
+		String email = payload.getMessage().getUserEmail();
 
 		NotificationDTO notificationDTO = new NotificationDTO();
 		notificationDTO.setUserEmail(email);
 		notificationDTO.setMessage(body);
 		notificationDTO.setTitle(title);
 		
-		SensorDetailsDTO details = new SensorDetailsDTO();
+		SensorMessageDTO details = new SensorMessageDTO();
 		details.setGasSensorValue(gasSensorValue);
-		details.setUmiditySensorValue(payload.getDetails().getUmiditySensorValue());
-		details.setRoomName(payload.getDetails().getRoomName());
+		details.setUmiditySensorValue(payload.getMessage().getUmiditySensorValue());
+		details.setRoomNameId(roomName.getNameId());
 		details.setUserEmail(email);
 
 		User user = userService.findByLogin(email);
@@ -192,7 +195,7 @@ public class NotificationService {
 		
 		List<Room> rooms = roomService.findAllByUserEmail(user.getEmail());
 		for (Room room : rooms) {
-			if (room.getName() == details.getRoomName()) {
+			if (room.getName() == roomName) {
 				userRoom = room;
 			}
 		}

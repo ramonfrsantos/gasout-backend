@@ -25,7 +25,7 @@ import br.com.gasoutapp.dto.audit.RevisionDTO;
 import br.com.gasoutapp.dto.room.RoomDTO;
 import br.com.gasoutapp.dto.room.RoomNameDTO;
 import br.com.gasoutapp.dto.room.RoomSwitchesDTO;
-import br.com.gasoutapp.dto.room.SensorDetailsDTO;
+import br.com.gasoutapp.dto.room.SensorMessageDTO;
 import br.com.gasoutapp.exception.AlreadyExistsException;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.repository.RoomRepository;
@@ -104,6 +104,11 @@ public class RoomService {
 		newRoom.setNotificationOn(false);
 		newRoom.setAlarmOn(false);
 		newRoom.setSprinklersOn(false);
+		
+		for(int i=0; i<10; i++) {
+			newRoom.getRecentGasSensorValues().add(0L);
+		}	
+		
 		newRoom = repository.save(newRoom);
 
 		newUserRooms.add(newRoom);
@@ -116,10 +121,14 @@ public class RoomService {
 		return ResponseEntity.created(locationRoom).body(parseToDTO(newRoom));
 	}
 
-	public RoomDTO sendRoomSensorValue(SensorDetailsDTO dto) {
-		Room newRoom = new Room();
+	public RoomDTO sendRoomSensorValue(SensorMessageDTO dto) {
+		RoomNameEnum roomNameDTO = getRoomNameById(dto.getRoomNameId()); 
 
-		String login = dto.getUserEmail();
+		Room newRoom = new Room();
+		
+		var limitSizeSensorValues = 10;
+		var login = dto.getUserEmail();
+		var gasSensorValue = dto.getGasSensorValue();
 
 		User user = userService.findByLogin(login);
 		if (user == null) {
@@ -128,29 +137,29 @@ public class RoomService {
 
 		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
 		for (Room room : rooms) {
-			if (room.getName() == dto.getRoomName()) {
+			if (room.getName() == roomNameDTO) {
 				newRoom = room;
 				newRoom.setUmiditySensorValue(dto.getUmiditySensorValue());
-				newRoom.setGasSensorValue(dto.getGasSensorValue());
+				newRoom.setGasSensorValue(gasSensorValue);
 				
 				List<Long> gasValues = newRoom.getRecentGasSensorValues();
 				
-				if(gasValues.size() >= 10) {
+				if(gasValues.size() >= limitSizeSensorValues) {
 					gasValues.remove(0);
-					gasValues.add(dto.getGasSensorValue());					
+					gasValues.add(gasSensorValue);					
 				} else {
-					gasValues.add(dto.getGasSensorValue());										
+					gasValues.add(gasSensorValue);										
 				}
 				
-				if (dto.getGasSensorValue() <= 0) {
+				if (gasSensorValue <= 0) {
 					newRoom.setNotificationOn(false);
 					newRoom.setAlarmOn(false);
 					newRoom.setSprinklersOn(false);
-				} else if (dto.getGasSensorValue() <= 25) {
+				} else if (gasSensorValue <= 25) {
 					newRoom.setNotificationOn(true);
 					newRoom.setAlarmOn(false);
 					newRoom.setSprinklersOn(false);
-				} else if (dto.getGasSensorValue() <= 50) {
+				} else if (gasSensorValue <= 50) {
 					newRoom.setNotificationOn(true);
 					newRoom.setAlarmOn(true);
 					newRoom.setSprinklersOn(false);
@@ -195,8 +204,11 @@ public class RoomService {
 
 	}
 
-	public void deleteAll() {
-		for (Room room : repository.findAll()) {
+	public void deleteAllByUser(String email) {
+		User user = userService.findByLogin(email);
+		user.setRooms(null);
+		
+		for (Room room : repository.findAllByUserEmail(email)) {
 			repository.delete(room);
 		}
 	}

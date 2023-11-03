@@ -87,7 +87,7 @@ public class NotificationController extends BaseRestController {
 
 	@PostMapping("/push")
 	@Operation(summary = "Enviar push notification", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO sendPush(@RequestBody SensorGasPayloadDTO payload) throws IOException, URISyntaxException {
+	public BaseResponseDTO sendPush(@RequestBody SensorGasPayloadDTO payload) throws IOException, URISyntaxException {		
 		return buildResponse(service.sendPush(payload));
 	}
 }

@@ -2,14 +2,14 @@ package br.com.gasoutapp.dto.room;
 
 public class SensorGasPayloadDTO {
 
-	private SensorDetailsDTO details;
+	private SensorMessageDTO message;
 
-	public SensorDetailsDTO getDetails() {
-		return details;
+	public SensorMessageDTO getMessage() {
+		return message;
 	}
 
-	public void setDetails(SensorDetailsDTO details) {
-		this.details = details;
+	public void setMessage(SensorMessageDTO message) {
+		this.message = message;
 	}
 
 }

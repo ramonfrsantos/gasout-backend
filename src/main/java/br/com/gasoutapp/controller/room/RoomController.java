@@ -26,7 +26,7 @@ import br.com.gasoutapp.domain.room.Room;
 import br.com.gasoutapp.dto.BaseResponseDTO;
 import br.com.gasoutapp.dto.room.RoomDTO;
 import br.com.gasoutapp.dto.room.RoomSwitchesDTO;
-import br.com.gasoutapp.dto.room.SensorDetailsDTO;
+import br.com.gasoutapp.dto.room.SensorMessageDTO;
 import br.com.gasoutapp.exception.NotFoundException;
 import br.com.gasoutapp.service.room.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -92,7 +92,7 @@ public class RoomController extends BaseRestController {
 
 	@PutMapping("/sensor-measurement-details")
 	@Operation(summary = "Atualizar medidas relativas ao sensor", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO sendRoomSensorValue(@RequestBody SensorDetailsDTO dto) {
+	public BaseResponseDTO sendRoomSensorValue(@RequestBody SensorMessageDTO dto, @RequestParam(required = true) RoomNameEnum roomName) {
 		return buildResponse(service.sendRoomSensorValue(dto));
 	}
 
@@ -102,9 +102,9 @@ public class RoomController extends BaseRestController {
 		return buildResponse(service.deleteRoom(id));
 	}
 
-	@DeleteMapping("/delete-all")
-	@Operation(summary = "Excluir cômodos", security = @SecurityRequirement(name = "gasoutapp"))
-	public void deleteAll() {
-		service.deleteAll();
+	@DeleteMapping("/delete-all/{userEmail}")
+	@Operation(summary = "Excluir todos os cômodos do usuário", security = @SecurityRequirement(name = "gasoutapp"))
+	public void deleteAll(@PathVariable String userEmail) {
+		service.deleteAllByUser(userEmail);
 	}
 }
