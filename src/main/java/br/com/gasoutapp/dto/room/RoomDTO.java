@@ -16,7 +16,7 @@ public class RoomDTO {
 	private Boolean notificationOn;
 	private Boolean alarmOn;
 	private Boolean sprinklersOn;
-	private List<Long> recentGasSensorValues;
+	private List<Double> recentGasSensorValues;
 
 	public RoomDTO() {
 	}

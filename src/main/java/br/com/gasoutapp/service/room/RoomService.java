@@ -42,6 +42,8 @@ public class RoomService {
 
 	@Autowired
 	private AuditReader auditReader;
+	
+	private static int GAS_VALUE_LIST_LIMIT_SIZE = 12; 
 
 	public List<RoomDTO> parseToDTO(List<Room> list) {
 		return list.stream().map(v -> parseToDTO(v)).collect(Collectors.toList());
@@ -105,8 +107,8 @@ public class RoomService {
 		newRoom.setAlarmOn(false);
 		newRoom.setSprinklersOn(false);
 		
-		for(int i=0; i<10; i++) {
-			newRoom.getRecentGasSensorValues().add(0L);
+		for(int i=0; i<GAS_VALUE_LIST_LIMIT_SIZE; i++) {
+			newRoom.getRecentGasSensorValues().add(0.0);
 		}	
 		
 		newRoom = repository.save(newRoom);
@@ -125,10 +127,9 @@ public class RoomService {
 		RoomNameEnum roomNameDTO = getRoomNameById(dto.getRoomNameId()); 
 
 		Room newRoom = new Room();
-		
-		var limitSizeSensorValues = 10;
+				
 		var login = dto.getUserEmail();
-		var gasSensorValue = dto.getGasSensorValue();
+		Double gasSensorValue = dto.getGasSensorValue().doubleValue();
 
 		User user = userService.findByLogin(login);
 		if (user == null) {
@@ -140,11 +141,11 @@ public class RoomService {
 			if (room.getName() == roomNameDTO) {
 				newRoom = room;
 				newRoom.setUmiditySensorValue(dto.getUmiditySensorValue());
-				newRoom.setGasSensorValue(gasSensorValue);
+				newRoom.setGasSensorValue(dto.getGasSensorValue());
 				
-				List<Long> gasValues = newRoom.getRecentGasSensorValues();
+				List<Double> gasValues = newRoom.getRecentGasSensorValues();
 				
-				if(gasValues.size() >= limitSizeSensorValues) {
+				if(gasValues.size() >= GAS_VALUE_LIST_LIMIT_SIZE) {
 					gasValues.remove(0);
 					gasValues.add(gasSensorValue);					
 				} else {

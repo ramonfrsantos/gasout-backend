@@ -65,5 +65,5 @@ public class Room {
 	@ElementCollection
 	@CollectionTable(name = "t_room_gas_recent_value", joinColumns = @JoinColumn(name = "fk_room"))
 	@Column(name = "gas_value")
-	private List<Long> recentGasSensorValues = new ArrayList<>();
+	private List<Double> recentGasSensorValues = new ArrayList<>();
 }
