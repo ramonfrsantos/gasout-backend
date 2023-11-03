@@ -92,7 +92,7 @@ public class RoomController extends BaseRestController {
 
 	@PutMapping("/sensor-measurement-details")
 	@Operation(summary = "Atualizar medidas relativas ao sensor", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO sendRoomSensorValue(@RequestBody SensorMessageDTO dto, @RequestParam(required = true) RoomNameEnum roomName) {
+	public BaseResponseDTO sendRoomSensorValue(@RequestBody SensorMessageDTO dto) {
 		return buildResponse(service.sendRoomSensorValue(dto));
 	}
 
