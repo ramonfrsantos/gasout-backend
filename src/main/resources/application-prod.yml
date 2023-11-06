@@ -15,6 +15,10 @@ aws:
          secret: ${AWS_CLIENT_ACCESS_KEY_SECRET}
 firebase:
    api-key: ${FIREBASE_API_KEY}
+api:
+   security:
+      token:
+         secret: ${JWT_SECRET:gasout-secret-key}
 
 # Spring config
 spring:
