@@ -9,7 +9,6 @@ import br.com.gasoutapp.application.dto.room.RoomNameDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
 import br.com.gasoutapp.application.dto.room.SensorDTO;
 import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
-import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
 import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 
 public interface RoomService {
@@ -40,5 +39,4 @@ public interface RoomService {
 
 	public List<Room> findAllByUserEmail(String email);
 
-	public void deleteOldestSensorByRoom(Room room, SensorTypeEnum sensorType);
 }

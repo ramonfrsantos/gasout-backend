@@ -150,9 +150,7 @@ public class NotificationServiceImpl implements NotificationService {
 			roomService.findAllByUserEmail(email).forEach(room -> {
 				if (room.getName() == roomName) {
 					Room userRoom = room;
-					
-					roomService.deleteOldestSensorByRoom(room, sensor.getSensorType());
-					
+										
 					Long gasSensorValue = sensor.getSensorValue();
 					
 					details.setSensorValue(gasSensorValue);
