@@ -5,7 +5,7 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import br.com.gasoutapp.domain.entity.user.User;
+import br.com.gasoutapp.infrastructure.db.entity.user.User;
 import lombok.Data;
 
 @Data

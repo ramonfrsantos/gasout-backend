@@ -8,8 +8,8 @@ import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.RoomNameDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
 import br.com.gasoutapp.application.dto.room.SensorMessageDTO;
-import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
-import br.com.gasoutapp.domain.entity.room.Room;
+import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 
 public interface RoomService {
 

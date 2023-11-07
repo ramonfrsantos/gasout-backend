@@ -3,7 +3,7 @@ package br.com.gasoutapp.application.dto.room;
 import java.util.List;
 
 import br.com.gasoutapp.application.dto.user.UserDTO;
-import br.com.gasoutapp.domain.entity.room.Room;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import lombok.Data;
 
 @Data

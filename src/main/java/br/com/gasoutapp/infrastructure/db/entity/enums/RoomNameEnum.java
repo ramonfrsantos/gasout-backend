@@ -1,4 +1,4 @@
-package br.com.gasoutapp.domain.entity.enums;
+package br.com.gasoutapp.infrastructure.db.entity.enums;
 
 public enum RoomNameEnum {
 	QUARTO(1, "QUARTO"), SALA_DE_ESTAR(2, "SALA"), SALA_DE_JANTAR(3, "SALA DE JANTAR"),

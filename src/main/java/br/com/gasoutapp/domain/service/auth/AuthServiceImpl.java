@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import br.com.gasoutapp.application.dto.user.UserDTO;
-import br.com.gasoutapp.domain.entity.enums.UserTypeEnum;
-import br.com.gasoutapp.domain.entity.user.User;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.exception.WrongPasswordException;
 import br.com.gasoutapp.domain.service.user.UserService;
@@ -17,6 +15,8 @@ import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
 import br.com.gasoutapp.infrastructure.config.security.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.TokenService;
 import br.com.gasoutapp.infrastructure.config.security.UserJWT;
+import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
+import br.com.gasoutapp.infrastructure.db.entity.user.User;
 
 @Service
 public class AuthServiceImpl implements AuthService {

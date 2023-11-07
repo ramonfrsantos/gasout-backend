@@ -1,6 +1,6 @@
 package br.com.gasoutapp.application.dto.room;
 
-import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

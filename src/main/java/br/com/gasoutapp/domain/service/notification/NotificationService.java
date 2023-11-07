@@ -11,8 +11,8 @@ import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.notification.NotificationDTO;
 import br.com.gasoutapp.application.dto.notification.PushResponseDTO;
 import br.com.gasoutapp.application.dto.room.SensorGasPayloadDTO;
-import br.com.gasoutapp.domain.entity.notification.Notification;
-import br.com.gasoutapp.domain.entity.user.User;
+import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
+import br.com.gasoutapp.infrastructure.db.entity.user.User;
 
 public interface NotificationService {
 

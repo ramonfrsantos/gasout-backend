@@ -25,16 +25,16 @@ import org.springframework.stereotype.Service;
 import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
-import br.com.gasoutapp.domain.entity.enums.UserTypeEnum;
-import br.com.gasoutapp.domain.entity.notification.Notification;
-import br.com.gasoutapp.domain.entity.room.Room;
-import br.com.gasoutapp.domain.entity.user.User;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.exception.UserAlreadyRegisteredException;
 import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
 import br.com.gasoutapp.infrastructure.config.security.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.TokenService;
-import br.com.gasoutapp.infrastructure.repository.UserRepository;
+import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
+import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
+import br.com.gasoutapp.infrastructure.db.entity.user.User;
+import br.com.gasoutapp.infrastructure.db.repository.UserRepository;
 
 @Service
 public class UserServiceImpl implements UserService {

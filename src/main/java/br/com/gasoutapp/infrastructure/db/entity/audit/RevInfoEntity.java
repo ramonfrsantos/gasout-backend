@@ -1,4 +1,4 @@
-package br.com.gasoutapp.domain.entity.audit;
+package br.com.gasoutapp.infrastructure.db.entity.audit;
 
 import java.util.Date;
 

@@ -1,4 +1,4 @@
-package br.com.gasoutapp.domain.entity.user;
+package br.com.gasoutapp.infrastructure.db.entity.user;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,9 +25,9 @@ import org.hibernate.envers.AuditJoinTable;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
-import br.com.gasoutapp.domain.entity.enums.UserTypeEnum;
-import br.com.gasoutapp.domain.entity.notification.Notification;
-import br.com.gasoutapp.domain.entity.room.Room;
+import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
+import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import lombok.Data;
 
 @DynamicUpdate

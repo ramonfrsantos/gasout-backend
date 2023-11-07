@@ -9,9 +9,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.com.gasoutapp.domain.entity.user.User;
 import br.com.gasoutapp.domain.exception.NotFoundException;
-import br.com.gasoutapp.infrastructure.repository.UserRepository;
+import br.com.gasoutapp.infrastructure.db.entity.user.User;
+import br.com.gasoutapp.infrastructure.db.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

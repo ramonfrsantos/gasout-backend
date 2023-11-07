@@ -1,4 +1,4 @@
-package br.com.gasoutapp.domain.entity.room;
+package br.com.gasoutapp.infrastructure.db.entity.room;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ import org.hibernate.annotations.Where;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
-import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
 import lombok.Data;
 
 @DynamicUpdate

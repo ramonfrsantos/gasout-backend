@@ -1,4 +1,4 @@
-package br.com.gasoutapp.domain.entity.notification;
+package br.com.gasoutapp.infrastructure.db.entity.notification;
 
 import java.util.Date;
 

@@ -26,15 +26,15 @@ import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.SensorGasPayloadDTO;
 import br.com.gasoutapp.application.dto.room.SensorMessageDTO;
 import br.com.gasoutapp.application.web.firebase.FirebaseService;
-import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
-import br.com.gasoutapp.domain.entity.notification.Notification;
-import br.com.gasoutapp.domain.entity.room.Room;
-import br.com.gasoutapp.domain.entity.user.User;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.room.RoomService;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
-import br.com.gasoutapp.infrastructure.repository.NotificationRepository;
+import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
+import br.com.gasoutapp.infrastructure.db.entity.user.User;
+import br.com.gasoutapp.infrastructure.db.repository.NotificationRepository;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {

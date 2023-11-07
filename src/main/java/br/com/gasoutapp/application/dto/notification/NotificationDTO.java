@@ -2,7 +2,7 @@ package br.com.gasoutapp.application.dto.notification;
 
 import java.util.Date;
 
-import br.com.gasoutapp.domain.entity.notification.Notification;
+import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
 import lombok.Data;
 
 @Data
