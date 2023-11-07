@@ -1,4 +1,4 @@
-package br.com.gasoutapp.domain.entity.enums;
+package br.com.gasoutapp.infrastructure.db.entity.enums;
 
 public enum SensorTypeEnum {
     UMIDADE, GAS;

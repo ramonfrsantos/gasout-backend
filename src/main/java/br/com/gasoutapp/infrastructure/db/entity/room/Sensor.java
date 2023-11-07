@@ -1,4 +1,4 @@
-package br.com.gasoutapp.domain.entity.room;
+package br.com.gasoutapp.infrastructure.db.entity.room;
 
 import java.util.Date;
 
@@ -18,7 +18,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
-import br.com.gasoutapp.domain.entity.enums.SensorTypeEnum;
+import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
 import lombok.Data;
 
 @Entity

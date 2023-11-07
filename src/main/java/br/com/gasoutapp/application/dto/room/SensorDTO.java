@@ -5,8 +5,8 @@ import java.util.Date;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 
-import br.com.gasoutapp.domain.entity.enums.SensorTypeEnum;
-import br.com.gasoutapp.domain.entity.room.Sensor;
+import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
+import br.com.gasoutapp.infrastructure.db.entity.room.Sensor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

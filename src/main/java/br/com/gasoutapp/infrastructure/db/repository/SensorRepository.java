@@ -1,4 +1,4 @@
-package br.com.gasoutapp.infrastructure.repository;
+package br.com.gasoutapp.infrastructure.db.repository;
 
 import java.util.List;
 
@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import br.com.gasoutapp.domain.entity.enums.SensorTypeEnum;
-import br.com.gasoutapp.domain.entity.room.Room;
-import br.com.gasoutapp.domain.entity.room.Sensor;
+import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
+import br.com.gasoutapp.infrastructure.db.entity.room.Sensor;
 
 @Repository
 public interface SensorRepository extends JpaRepository<Sensor, String> {

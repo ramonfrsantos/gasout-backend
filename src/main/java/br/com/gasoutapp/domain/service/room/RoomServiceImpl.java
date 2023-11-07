@@ -23,17 +23,17 @@ import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.RoomNameDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
 import br.com.gasoutapp.application.dto.room.SensorDTO;
-import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
-import br.com.gasoutapp.domain.entity.enums.SensorTypeEnum;
-import br.com.gasoutapp.domain.entity.room.Room;
-import br.com.gasoutapp.domain.entity.room.Sensor;
-import br.com.gasoutapp.domain.entity.user.User;
 import br.com.gasoutapp.domain.exception.AlreadyExistsException;
 import br.com.gasoutapp.domain.exception.ListSizeNotValidException;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.user.UserService;
-import br.com.gasoutapp.infrastructure.repository.RoomRepository;
-import br.com.gasoutapp.infrastructure.repository.SensorRepository;
+import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
+import br.com.gasoutapp.infrastructure.db.entity.room.Sensor;
+import br.com.gasoutapp.infrastructure.db.entity.user.User;
+import br.com.gasoutapp.infrastructure.db.repository.RoomRepository;
+import br.com.gasoutapp.infrastructure.db.repository.SensorRepository;
 
 @Service
 public class RoomServiceImpl implements RoomService {
