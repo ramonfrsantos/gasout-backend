@@ -1,15 +1,17 @@
 package br.com.gasoutapp.application.dto.room;
 
+import java.util.List;
+
 public class SensorGasPayloadDTO {
 
-	private SensorMessageDTO message;
+	private List<SensorDTO> sensors;
 
-	public SensorMessageDTO getMessage() {
-		return message;
+	public List<SensorDTO> getSensors() {
+		return sensors;
 	}
 
-	public void setMessage(SensorMessageDTO message) {
-		this.message = message;
+	public void setSensors(List<SensorDTO> sensors) {
+		this.sensors = sensors;
 	}
-
+	
 }

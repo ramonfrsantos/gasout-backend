@@ -1,52 +1,50 @@
 package br.com.gasoutapp.domain.entity.room;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Where;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
-import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.domain.entity.enums.SensorTypeEnum;
 import lombok.Data;
 
-@DynamicUpdate
 @Entity
 @Data
 @Audited(withModifiedFlag = true)
-@AuditTable(value = "aud_t_room", catalog = "audit")
-@Table(name = "t_room")
-@Where(clause = "deleted = false")
-public class Room {
+@AuditTable(value = "aud_t_sensor", catalog = "audit")
+@Table(name = "t_sensor")
+public class Sensor {
 	@Id
 	@GeneratedValue(generator = "uuid2")
 	@GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
 	@Column(name = "id")
 	private String id;
 
-	@Column(name = "name")
+	@Column(name = "type")
 	@Enumerated(EnumType.STRING)
-	private RoomNameEnum name;
+	private SensorTypeEnum sensorType;
+	
+	@Column(name = "timestamp")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date timestamp;
 
-	@Column(name = "notification_on")
-	private boolean notificationOn;
-
-	@Column(name = "alarm_on")
-	private boolean alarmOn;
-
-	@Column(name = "sprinklers_on")
-	private boolean sprinklersOn;
-
-	@Column(name = "user_email")
-	private String userEmail;
-
-	@Column(name = "deleted")
-	private boolean deleted;
+	@Column(name = "value")
+	private Long sensorValue;
+	
+	@ManyToOne
+	@JoinColumn(name = "fk_room")
+	private Room room;
 }

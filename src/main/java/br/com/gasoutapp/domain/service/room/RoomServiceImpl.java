@@ -4,9 +4,12 @@ import static br.com.gasoutapp.infrastructure.utils.JsonUtil.convertToObjectArra
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import javax.transaction.Transactional;
 
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.query.AuditEntity;
@@ -19,20 +22,26 @@ import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.RoomNameDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
-import br.com.gasoutapp.application.dto.room.SensorMessageDTO;
+import br.com.gasoutapp.application.dto.room.SensorDTO;
 import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.domain.entity.enums.SensorTypeEnum;
 import br.com.gasoutapp.domain.entity.room.Room;
+import br.com.gasoutapp.domain.entity.room.Sensor;
 import br.com.gasoutapp.domain.entity.user.User;
 import br.com.gasoutapp.domain.exception.AlreadyExistsException;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.repository.RoomRepository;
+import br.com.gasoutapp.infrastructure.repository.SensorRepository;
 
 @Service
 public class RoomServiceImpl implements RoomService {
 
 	@Autowired
 	private RoomRepository repository;
+	
+	@Autowired
+	private SensorRepository sensorRepository;
 
 	@Autowired
 	private UserService userService;
@@ -89,34 +98,30 @@ public class RoomServiceImpl implements RoomService {
 				
 		newRoom.setName(roomName);
 		newRoom.setUserEmail(user.getEmail());
-		newRoom.setGasSensorValue(0L);
-		newRoom.setUmiditySensorValue(0L);
 		newRoom.setNotificationOn(false);
 		newRoom.setAlarmOn(false);
 		newRoom.setSprinklersOn(false);
 		
-		for(int i=0; i<GAS_VALUE_LIST_LIMIT_SIZE; i++) {
-			newRoom.getRecentGasSensorValues().add(0.0);
-		}	
-		
 		newRoom = repository.save(newRoom);
+		
+		createSensors(newRoom);	
 
 		newUserRooms.add(newRoom);
 
 		userService.setUserRooms(newUserRooms, newUser);
 
-		return parseToDTO(newRoom);
+		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS));
 	}
 
+	@Transactional
 	@Override
-	public RoomDTO sendRoomSensorValue(SensorMessageDTO dto) {
+	public RoomDTO sendRoomSensorValue(SensorDTO dto) {
 		RoomNameEnum roomNameDTO = getRoomNameById(dto.getRoomNameId()); 
 
 		Room newRoom = new Room();
 				
 		var login = dto.getUserEmail();
-		Double gasSensorValue = dto.getGasSensorValue().doubleValue();
-
+	
 		User user = userService.findByLogin(login);
 		if (user == null) {
 			throw new NotFoundException("Usuario nao encontrado.");
@@ -126,41 +131,41 @@ public class RoomServiceImpl implements RoomService {
 		for (Room room : rooms) {
 			if (room.getName() == roomNameDTO) {
 				newRoom = room;
-				newRoom.setUmiditySensorValue(dto.getUmiditySensorValue());
-				newRoom.setGasSensorValue(dto.getGasSensorValue());
 				
-				List<Double> gasValues = newRoom.getRecentGasSensorValues();
+				Sensor sensor = new Sensor();
+				sensor.setRoom(newRoom);
+				sensor.setSensorType(dto.getSensorType());
+				sensor.setSensorValue(dto.getSensorValue());
+				sensor.setTimestamp(new Date());
+				sensorRepository.save(sensor);
 				
-				if(gasValues.size() >= GAS_VALUE_LIST_LIMIT_SIZE) {
-					gasValues.remove(0);
-					gasValues.add(gasSensorValue);					
-				} else {
-					gasValues.add(gasSensorValue);										
+				if(dto.getSensorType() == SensorTypeEnum.GAS) {
+					Double gasSensorValue = dto.getSensorValue().doubleValue();	
+					
+					if (gasSensorValue <= 0) {
+						newRoom.setNotificationOn(false);
+						newRoom.setAlarmOn(false);
+						newRoom.setSprinklersOn(false);
+					} else if (gasSensorValue <= 25) {
+						newRoom.setNotificationOn(true);
+						newRoom.setAlarmOn(false);
+						newRoom.setSprinklersOn(false);
+					} else if (gasSensorValue <= 50) {
+						newRoom.setNotificationOn(true);
+						newRoom.setAlarmOn(true);
+						newRoom.setSprinklersOn(false);
+					} else {
+						newRoom.setNotificationOn(true);
+						newRoom.setAlarmOn(true);
+						newRoom.setSprinklersOn(true);
+					}
 				}
-				
-				if (gasSensorValue <= 0) {
-					newRoom.setNotificationOn(false);
-					newRoom.setAlarmOn(false);
-					newRoom.setSprinklersOn(false);
-				} else if (gasSensorValue <= 25) {
-					newRoom.setNotificationOn(true);
-					newRoom.setAlarmOn(false);
-					newRoom.setSprinklersOn(false);
-				} else if (gasSensorValue <= 50) {
-					newRoom.setNotificationOn(true);
-					newRoom.setAlarmOn(true);
-					newRoom.setSprinklersOn(false);
-				} else {
-					newRoom.setNotificationOn(true);
-					newRoom.setAlarmOn(true);
-					newRoom.setSprinklersOn(true);
-				}
-
+								
 				repository.save(newRoom);
 			}
 		}
 
-		return parseToDTO(newRoom);
+		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS));
 	}
 
 	@Override
@@ -184,7 +189,7 @@ public class RoomServiceImpl implements RoomService {
 		Optional<Room> optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 
 		if (optRoom.isPresent()) {
-			return parseToDTO(optRoom.get());
+			return parseToDTO(optRoom.get(), sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(optRoom.get(), SensorTypeEnum.GAS));
 		} else {
 			throw new NotFoundException("Comodo nao cadastrado.");
 		}
@@ -197,6 +202,10 @@ public class RoomServiceImpl implements RoomService {
 		user.setRooms(null);
 		
 		for (Room room : repository.findAllByUserEmail(email)) {
+			
+			for(Sensor sensor: sensorRepository.findAllByRoom(room))
+				sensorRepository.delete(sensor);
+			
 			repository.delete(room);
 		}
 	}
@@ -219,8 +228,10 @@ public class RoomServiceImpl implements RoomService {
 			room.setNotificationOn(dto.getNotificationOn());
 		if (dto.getSprinklersOn() != null)
 			room.setSprinklersOn(dto.getSprinklersOn());
+		
+		Room newRoom = repository.save(room);
 
-		return parseToDTO(repository.save(room));
+		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS));
 	}
 
 	@Override
@@ -273,15 +284,50 @@ public class RoomServiceImpl implements RoomService {
 		return repository.findAllByUserEmail(email);
 	}
 	
+	private void createSensors(Room room){
+		for(int i=0; i<GAS_VALUE_LIST_LIMIT_SIZE; i++) {
+			Date dateNow = new Date();
+			
+			Sensor sensorGas = new Sensor();
+			sensorGas.setRoom(room);
+			sensorGas.setSensorType(SensorTypeEnum.GAS);
+			sensorGas.setSensorValue(0l);
+			sensorGas.setTimestamp(dateNow);
+			
+			sensorRepository.save(sensorGas);
+					
+			Sensor sensorUmidity = new Sensor();
+			sensorUmidity.setRoom(room);
+			sensorUmidity.setSensorType(SensorTypeEnum.UMIDADE);
+			sensorUmidity.setSensorValue(0l);
+			sensorUmidity.setTimestamp(dateNow);
+			
+			sensorRepository.save(sensorUmidity);
+		}
+	}
+	
 	public List<RoomDTO> parseToDTO(List<Room> list) {
-		return list.stream().map(this::parseToDTO).toList();
+		return list.stream().map(room -> parseToDTO(room, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(room, SensorTypeEnum.GAS))).toList();
 	}
 
 	public Page<RoomDTO> parseToDTO(Page<Room> page) {
 		return page.map(RoomDTO::new);
 	}
 
-	public RoomDTO parseToDTO(Room room) {
-		return new RoomDTO(room);
+	public RoomDTO parseToDTO(Room room, List<Double> recentSensorValues) {
+		RoomDTO roomDTO = new RoomDTO(room);
+		roomDTO.setRecentGasSensorValues(recentSensorValues);
+		
+		return roomDTO;
+	}
+
+	@Override
+	public void deleteOldestSensorByRoom(Room room, SensorTypeEnum sensorType) {
+		List<Sensor> sensors = sensorRepository.findOldestSensorByRoom(room, sensorType);
+		if(sensors.size() == GAS_VALUE_LIST_LIMIT_SIZE) {
+			sensorRepository.delete(sensors.get(0));			
+		} else {
+			throw new RuntimeException("A lista de sensores nao contem o numero correto de elementos");
+		}
 	}
 }
