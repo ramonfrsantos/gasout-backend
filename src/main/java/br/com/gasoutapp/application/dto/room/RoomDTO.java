@@ -9,6 +9,8 @@ import lombok.Data;
 @Data
 public class RoomDTO {
 	private String id;
+	private Long gasSensorValue;
+	private Long umiditySensorValue;
 	private RoomNameDTO details;
 	private UserDTO user;
 	private Boolean notificationOn;

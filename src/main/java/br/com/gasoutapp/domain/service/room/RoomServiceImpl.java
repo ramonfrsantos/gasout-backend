@@ -29,6 +29,7 @@ import br.com.gasoutapp.domain.entity.room.Room;
 import br.com.gasoutapp.domain.entity.room.Sensor;
 import br.com.gasoutapp.domain.entity.user.User;
 import br.com.gasoutapp.domain.exception.AlreadyExistsException;
+import br.com.gasoutapp.domain.exception.ListSizeNotValidException;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.repository.RoomRepository;
@@ -110,7 +111,7 @@ public class RoomServiceImpl implements RoomService {
 
 		userService.setUserRooms(newUserRooms, newUser);
 
-		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS));
+		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS), sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.UMIDADE));
 	}
 
 	@Transactional
@@ -165,7 +166,7 @@ public class RoomServiceImpl implements RoomService {
 			}
 		}
 
-		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS));
+		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS), sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.UMIDADE));
 	}
 
 	@Override
@@ -189,7 +190,7 @@ public class RoomServiceImpl implements RoomService {
 		Optional<Room> optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 
 		if (optRoom.isPresent()) {
-			return parseToDTO(optRoom.get(), sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(optRoom.get(), SensorTypeEnum.GAS));
+			return parseToDTO(optRoom.get(), sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(optRoom.get(), SensorTypeEnum.GAS), sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(optRoom.get(), SensorTypeEnum.UMIDADE));
 		} else {
 			throw new NotFoundException("Comodo nao cadastrado.");
 		}
@@ -231,7 +232,7 @@ public class RoomServiceImpl implements RoomService {
 		
 		Room newRoom = repository.save(room);
 
-		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS));
+		return parseToDTO(newRoom, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS), sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(room, SensorTypeEnum.UMIDADE));
 	}
 
 	@Override
@@ -307,16 +308,18 @@ public class RoomServiceImpl implements RoomService {
 	}
 	
 	public List<RoomDTO> parseToDTO(List<Room> list) {
-		return list.stream().map(room -> parseToDTO(room, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(room, SensorTypeEnum.GAS))).toList();
+		return list.stream().map(room -> parseToDTO(room, sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(room, SensorTypeEnum.GAS), sensorRepository.findRecentGasValueByRoomOrderByTimestampDesc(room, SensorTypeEnum.UMIDADE))).toList();
 	}
 
 	public Page<RoomDTO> parseToDTO(Page<Room> page) {
 		return page.map(RoomDTO::new);
 	}
 
-	public RoomDTO parseToDTO(Room room, List<Double> recentSensorValues) {
+	public RoomDTO parseToDTO(Room room, List<Double> recentGasSensorValues, List<Double> recentUmiditySensorValues) {
 		RoomDTO roomDTO = new RoomDTO(room);
-		roomDTO.setRecentGasSensorValues(recentSensorValues);
+		roomDTO.setRecentGasSensorValues(recentGasSensorValues);
+		roomDTO.setGasSensorValue(recentGasSensorValues.get(0).longValue());
+		roomDTO.setUmiditySensorValue(recentUmiditySensorValues.get(0).longValue());
 		
 		return roomDTO;
 	}
@@ -327,7 +330,7 @@ public class RoomServiceImpl implements RoomService {
 		if(sensors.size() == GAS_VALUE_LIST_LIMIT_SIZE) {
 			sensorRepository.delete(sensors.get(0));			
 		} else {
-			throw new RuntimeException("A lista de sensores nao contem o numero correto de elementos");
+			throw new ListSizeNotValidException("A lista de sensores nao contem o numero correto de elementos");
 		}
 	}
 }
