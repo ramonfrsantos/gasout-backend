@@ -1,17 +1,11 @@
 package br.com.gasoutapp.infrastructure.db.entity.room;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicUpdate;
@@ -50,20 +44,9 @@ public class Room {
 	@Column(name = "sprinklers_on")
 	private boolean sprinklersOn;
 
-	@Column(name = "gas_sensor_value")
-	private Long gasSensorValue;
-	
-	@Column(name = "umidity_sensor_value")
-	private Long umiditySensorValue;
-
 	@Column(name = "user_email")
 	private String userEmail;
 
 	@Column(name = "deleted")
 	private boolean deleted;
-	
-	@ElementCollection
-	@CollectionTable(name = "t_room_gas_recent_value", joinColumns = @JoinColumn(name = "fk_room"))
-	@Column(name = "gas_value")
-	private List<Double> recentGasSensorValues = new ArrayList<>();
 }

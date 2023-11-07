@@ -23,8 +23,8 @@ import br.com.gasoutapp.application.dto.notification.FirebaseNotificationDTO;
 import br.com.gasoutapp.application.dto.notification.NotificationDTO;
 import br.com.gasoutapp.application.dto.notification.PushResponseDTO;
 import br.com.gasoutapp.application.dto.room.RoomDTO;
+import br.com.gasoutapp.application.dto.room.SensorDTO;
 import br.com.gasoutapp.application.dto.room.SensorGasPayloadDTO;
-import br.com.gasoutapp.application.dto.room.SensorMessageDTO;
 import br.com.gasoutapp.application.web.firebase.FirebaseService;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.room.RoomService;
@@ -68,10 +68,10 @@ public class NotificationServiceImpl implements NotificationService {
 
 	public NotificationDTO createNotification(NotificationDTO dto) {
 		List<Notification> newUserNotifications = new ArrayList<>();
-		
+
 		User newUser;
 		User user = userService.findByLogin(dto.getUserEmail());
-		
+
 		if (Objects.isNull(user)) {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
@@ -97,7 +97,7 @@ public class NotificationServiceImpl implements NotificationService {
 		userService.setUserNotifications(newUserNotifications, newUser);
 
 		List<Notification> notificationsUserNull = notificationRepository.findAllByUserEmailOrderByDateAsc(null);
-		
+
 		if (!notificationsUserNull.isEmpty()) {
 			for (Notification notification : notificationsUserNull) {
 				notification.setDeleted(true);
@@ -109,8 +109,9 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	public String deleteNotification(String id) {
-		Notification notification = notificationRepository.findById(id).orElseThrow(() -> new NotFoundException("Notificação não encontrada."));
-		
+		Notification notification = notificationRepository.findById(id)
+				.orElseThrow(() -> new NotFoundException("Notificação não encontrada."));
+
 		notification.setDeleted(true);
 		notificationRepository.save(notification);
 
@@ -134,74 +135,83 @@ public class NotificationServiceImpl implements NotificationService {
 		return notificationRepository.findById(id);
 	}
 
-	public PushResponseDTO sendPush(SensorGasPayloadDTO payload) throws IOException, URISyntaxException {
-		RoomNameEnum roomName = roomService.getRoomNameById(payload.getMessage().getRoomNameId()); 
-		
+	public PushResponseDTO sendPush(SensorGasPayloadDTO payload) {
 		PushResponseDTO responseDTO = new PushResponseDTO();
-
-		String title = "";
-		String body = "";
-
-		Long gasSensorValue = payload.getMessage().getGasSensorValue();
-
-		if (gasSensorValue <= 0) {
-			title = "Apenas atualização de status...";
-			body = "Tudo em paz! Sem vazamento de gás no momento.";
-		} else if (gasSensorValue > 0 && gasSensorValue < 25) {
-			title = "🚨 Atenção!";
-			body = "Detectamos nível BAIXO de vazamento em seu local!";
-		} else if (gasSensorValue >= 25 && gasSensorValue < 51) {
-			title = "🚨🚨 Detectamos nível MÉDIO de vazamento em seu local! ";
-			body = "Verifique as condições de monitoramento do seu cômodo...";
-		} else if (gasSensorValue >= 51) {
-			title = "🚨🚨🚨 Detectamos nível ALTO de vazamento em seu local!";
-			body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
-		}
-
-		String email = payload.getMessage().getUserEmail();
-
-		NotificationDTO notificationDTO = new NotificationDTO();
-		notificationDTO.setUserEmail(email);
-		notificationDTO.setMessage(body);
-		notificationDTO.setTitle(title);
 		
-		SensorMessageDTO details = new SensorMessageDTO();
-		details.setGasSensorValue(gasSensorValue);
-		details.setUmiditySensorValue(payload.getMessage().getUmiditySensorValue());
-		details.setRoomNameId(roomName.getNameId());
-		details.setUserEmail(email);
 
-		User user = userService.findByLogin(email);
-		
-		Room userRoom = new Room();
-		
-		List<Room> rooms = roomService.findAllByUserEmail(user.getEmail());
-		for (Room room : rooms) {
-			if (room.getName() == roomName) {
-				userRoom = room;
-			}
-		}
-
-		List<String> ids = new ArrayList<>();
-		ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
-		
-		if(userRoom != null && userRoom.isNotificationOn()) {
-			FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();
-			firebaseNotificationDTO.setNotification(notificationDTO);
-			firebaseNotificationDTO.setRegistration_ids(ids);
+		for (SensorDTO sensor : payload.getSensors()) {
+			SensorDTO details = new SensorDTO();
 			
-			firebaseService.createFirebaseNotification(firebaseNotificationDTO);
-			responseDTO.setPushNotificationSent(true);
+			RoomNameEnum roomName = roomService.getRoomNameById(sensor.getRoomNameId());
+			String email = sensor.getUserEmail();
 			
-			createNotification(notificationDTO);
-			responseDTO.setNotificationCreated(true);			
-		} else {
-			responseDTO.setPushNotificationSent(false);
-			responseDTO.setNotificationCreated(false);						
-		}
+			User user = userService.findByEmail(email);
 
-		RoomDTO room = roomService.sendRoomSensorValue(details);
-		responseDTO.setUpdatedRoom(room);
+			roomService.findAllByUserEmail(email).forEach(room -> {
+				if (room.getName() == roomName) {
+					Room userRoom = room;
+					
+					roomService.deleteOldestSensorByRoom(room, sensor.getSensorType());
+					
+					Long gasSensorValue = sensor.getSensorValue();
+					
+					details.setSensorValue(gasSensorValue);
+					details.setSensorType(sensor.getSensorType());
+					details.setRoomNameId(roomName.getNameId());
+					details.setUserEmail(email);
+					
+					String title = "";
+					String body = "";
+					
+					if (gasSensorValue <= 0) {
+						title = "Apenas atualização de status...";
+						body = "Tudo em paz! Sem vazamento de gás no momento.";
+					} else if (gasSensorValue > 0 && gasSensorValue < 25) {
+						title = "🚨 Atenção!";
+						body = "Detectamos nível BAIXO de vazamento em seu local!";
+					} else if (gasSensorValue >= 25 && gasSensorValue < 51) {
+						title = "🚨🚨 Detectamos nível MÉDIO de vazamento em seu local! ";
+						body = "Verifique as condições de monitoramento do seu cômodo...";
+					} else {
+						title = "🚨🚨🚨 Detectamos nível ALTO de vazamento em seu local!";
+						body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
+					}
+					
+					NotificationDTO notificationDTO = new NotificationDTO();
+					notificationDTO.setUserEmail(email);
+					notificationDTO.setMessage(body);
+					notificationDTO.setTitle(title);
+					
+					List<String> ids = new ArrayList<>();
+					ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
+
+					if (userRoom != null && userRoom.isNotificationOn()) {
+						FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();
+						firebaseNotificationDTO.setNotification(notificationDTO);
+						firebaseNotificationDTO.setRegistration_ids(ids);
+
+						try {
+							firebaseService.createFirebaseNotification(firebaseNotificationDTO);
+						} catch (IOException | URISyntaxException e) {
+							e.printStackTrace();
+						} 
+	
+						responseDTO.setPushNotificationSent(true);
+
+						createNotification(notificationDTO);
+						responseDTO.setNotificationCreated(true);
+					} else {
+						responseDTO.setPushNotificationSent(false);
+						responseDTO.setNotificationCreated(false);
+					}
+
+				}
+			});
+			
+			RoomDTO roomDTO = roomService.sendRoomSensorValue(details);
+			responseDTO.setUpdatedRoom(roomDTO);
+		}
+		
 
 		return responseDTO;
 	}
@@ -226,7 +236,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 		return details;
 	}
-	
+
 	public List<NotificationDTO> parseToDTO(List<Notification> list) {
 		return list.stream().map(this::parseToDTO).toList();
 	}

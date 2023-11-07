@@ -7,9 +7,10 @@ import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.RoomNameDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
-import br.com.gasoutapp.application.dto.room.SensorMessageDTO;
-import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
-import br.com.gasoutapp.infrastructure.db.entity.room.Room;
+import br.com.gasoutapp.application.dto.room.SensorDTO;
+import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.domain.entity.enums.SensorTypeEnum;
+import br.com.gasoutapp.domain.entity.room.Room;
 
 public interface RoomService {
 
@@ -19,7 +20,7 @@ public interface RoomService {
 
 	public RoomDTO createRoom(RoomNameEnum roomName, String email);
 
-	public RoomDTO sendRoomSensorValue(SensorMessageDTO dto);
+	public RoomDTO sendRoomSensorValue(SensorDTO dto);
 
 	public String deleteRoom(String id);
 
@@ -38,4 +39,6 @@ public interface RoomService {
 	public List<RevisionDTO> getRevisions(String id);
 
 	public List<Room> findAllByUserEmail(String email);
+
+	public void deleteOldestSensorByRoom(Room room, SensorTypeEnum sensorType);
 }

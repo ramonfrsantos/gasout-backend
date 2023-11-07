@@ -28,11 +28,11 @@ import br.com.gasoutapp.application.controller.BaseRestController;
 import br.com.gasoutapp.application.dto.BaseResponseDTO;
 import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
-import br.com.gasoutapp.application.dto.room.SensorMessageDTO;
+import br.com.gasoutapp.application.dto.room.SensorDTO;
+import br.com.gasoutapp.domain.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.domain.entity.room.Room;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.room.RoomService;
-import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
-import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -103,7 +103,7 @@ public class RoomController extends BaseRestController {
 
 	@PutMapping("/sensor-measurement-details")
 	@Operation(summary = "Atualizar medidas relativas ao sensor", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO sendRoomSensorValue(@RequestBody SensorMessageDTO dto) {
+	public BaseResponseDTO sendRoomSensorValue(@RequestBody SensorDTO dto) {
 		return buildResponse(service.sendRoomSensorValue(dto));
 	}
 
