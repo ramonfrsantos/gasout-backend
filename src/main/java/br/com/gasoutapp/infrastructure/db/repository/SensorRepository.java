@@ -15,13 +15,10 @@ import br.com.gasoutapp.infrastructure.db.entity.room.Sensor;
 public interface SensorRepository extends JpaRepository<Sensor, String> {
 
 	List<Sensor> findAllByRoom(Room newRoom);
-	
-	@Query("SELECT s.sensorValue FROM Sensor s WHERE s.room = :room AND s.sensorType = :type ORDER BY s.timestamp DESC")
-    List<Double> findRecentValuesByRoomOrderByTimestampDesc(@Param("room") Room room, @Param("type") SensorTypeEnum sensorType);
 
 	@Query("SELECT s FROM Sensor s WHERE s.room = :room AND s.sensorType = :type ORDER BY s.timestamp ASC")
-    List<Sensor> findOldestSensorByRoom(@Param("room") Room room, @Param("type") SensorTypeEnum sensorType);
+    List<Sensor> findOldestSensorByRoomOrderByTimestampAsc(@Param("room") Room room, @Param("type") SensorTypeEnum sensorType);
 	
 	@Query("SELECT s FROM Sensor s WHERE s.room = :room AND s.sensorType = :type ORDER BY s.timestamp DESC")
-    List<Sensor> findRecentSensorByRoom(@Param("room") Room room, @Param("type") SensorTypeEnum sensorType);
+    List<Sensor> findRecentSensorByRoomOrderByTimestampDesc(@Param("room") Room room, @Param("type") SensorTypeEnum sensorType);
 }

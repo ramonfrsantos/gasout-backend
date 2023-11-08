@@ -1,7 +1,7 @@
 package br.com.gasoutapp.domain.service.room;
 
-import static br.com.gasoutapp.infrastructure.utils.JsonUtil.convertToObjectArray;
 import static br.com.gasoutapp.infrastructure.utils.DateUtils.differenceInMinutes;
+import static br.com.gasoutapp.infrastructure.utils.JsonUtil.convertToObjectArray;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +24,7 @@ import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.RoomNameDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
 import br.com.gasoutapp.application.dto.room.SensorDTO;
+import br.com.gasoutapp.application.dto.room.SensorMinDetailsDTO;
 import br.com.gasoutapp.domain.exception.AlreadyExistsException;
 import br.com.gasoutapp.domain.exception.ListSizeNotValidException;
 import br.com.gasoutapp.domain.exception.NotFoundException;
@@ -52,7 +53,7 @@ public class RoomServiceImpl implements RoomService {
 	private AuditReader auditReader;
 
 	private static final int GAS_VALUE_LIST_LIMIT_SIZE = 12;
-	private static final int SENSOR_MEASUREMENT_DELAY_IN_MINUTES = 5;
+	private static final int SENSOR_MEASUREMENT_DELAY_IN_MINUTES = 0;
 
 	@Override
 	public List<RoomNameDTO> getAllRooms() {
@@ -114,8 +115,8 @@ public class RoomServiceImpl implements RoomService {
 		userService.setUserRooms(newUserRooms, newUser);
 
 		return parseToDTO(newRoom,
-				sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS),
-				sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.UMIDADE));
+				sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS),
+				sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.UMIDADE));
 	}
 
 	@Transactional
@@ -134,7 +135,7 @@ public class RoomServiceImpl implements RoomService {
 				newRoom = room;
 
 				Sensor newSensor = new Sensor();
-				Sensor mostRecentSensor = sensorRepository.findRecentSensorByRoom(newRoom, dto.getSensorType()).get(0);
+				Sensor mostRecentSensor = sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, dto.getSensorType()).get(0);
 
 				if (differenceInMinutes(new Date(),
 						mostRecentSensor.getTimestamp()) < SENSOR_MEASUREMENT_DELAY_IN_MINUTES) {
@@ -156,8 +157,8 @@ public class RoomServiceImpl implements RoomService {
 		}
 
 		return parseToDTO(newRoom,
-				sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS),
-				sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.UMIDADE));
+				sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS),
+				sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.UMIDADE));
 	}
 	
 	private void updateRoomStateBasedOnGasSensorValue(Room room, Long gasSensorValue) {
@@ -205,8 +206,8 @@ public class RoomServiceImpl implements RoomService {
 
 		if (optRoom.isPresent()) {
 			return parseToDTO(optRoom.get(),
-					sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(optRoom.get(), SensorTypeEnum.GAS),
-					sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(optRoom.get(), SensorTypeEnum.UMIDADE));
+					sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(optRoom.get(), SensorTypeEnum.GAS),
+					sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(optRoom.get(), SensorTypeEnum.UMIDADE));
 		} else {
 			throw new NotFoundException("Comodo nao cadastrado.");
 		}
@@ -249,8 +250,8 @@ public class RoomServiceImpl implements RoomService {
 		Room newRoom = repository.save(room);
 
 		return parseToDTO(newRoom,
-				sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS),
-				sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(room, SensorTypeEnum.UMIDADE));
+				sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS),
+				sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(room, SensorTypeEnum.UMIDADE));
 	}
 
 	@Override
@@ -304,7 +305,7 @@ public class RoomServiceImpl implements RoomService {
 	}
 	
 	private void deleteOldestSensorValue(Room room, SensorTypeEnum sensorType) {
-		List<Sensor> sensors = sensorRepository.findOldestSensorByRoom(room, sensorType);
+		List<Sensor> sensors = sensorRepository.findOldestSensorByRoomOrderByTimestampAsc(room, sensorType);
 		if(sensors.size() == GAS_VALUE_LIST_LIMIT_SIZE) {
 			sensorRepository.delete(sensors.get(0));			
 		} else {
@@ -337,8 +338,8 @@ public class RoomServiceImpl implements RoomService {
 	public List<RoomDTO> parseToDTO(List<Room> list) {
 		return list.stream()
 				.map(room -> parseToDTO(room,
-						sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(room, SensorTypeEnum.GAS),
-						sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(room, SensorTypeEnum.UMIDADE)))
+						sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(room, SensorTypeEnum.GAS),
+						sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(room, SensorTypeEnum.UMIDADE)))
 				.toList();
 	}
 
@@ -346,11 +347,11 @@ public class RoomServiceImpl implements RoomService {
 		return page.map(RoomDTO::new);
 	}
 
-	public RoomDTO parseToDTO(Room room, List<Double> recentGasSensorValues, List<Double> recentUmiditySensorValues) {
+public RoomDTO parseToDTO(Room room, List<Sensor> recentGasSensorValues, List<Sensor> recentUmiditySensorValues) {
 		RoomDTO roomDTO = new RoomDTO(room);
-		roomDTO.setRecentGasSensorValues(recentGasSensorValues);
-		roomDTO.setGasSensorValue(recentGasSensorValues.get(0).longValue());
-		roomDTO.setUmiditySensorValue(recentUmiditySensorValues.get(0).longValue());
+		roomDTO.setRecentGasSensorValues(recentGasSensorValues.stream().map(SensorMinDetailsDTO::new).toList());
+		roomDTO.setGasSensorValue(recentGasSensorValues.get(0).getSensorValue());
+		roomDTO.setUmiditySensorValue(recentUmiditySensorValues.get(0).getSensorValue());
 
 		return roomDTO;
 	}
