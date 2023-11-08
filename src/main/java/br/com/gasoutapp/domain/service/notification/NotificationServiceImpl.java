@@ -158,32 +158,12 @@ public class NotificationServiceImpl implements NotificationService {
 					details.setRoomNameId(roomName.getNameId());
 					details.setUserEmail(email);
 					
-					String title = "";
-					String body = "";
-					
-					if (gasSensorValue <= 0) {
-						title = "Apenas atualização de status...";
-						body = "Tudo em paz! Sem vazamento de gás no momento.";
-					} else if (gasSensorValue > 0 && gasSensorValue < 25) {
-						title = "🚨 Atenção!";
-						body = "Detectamos nível BAIXO de vazamento em seu local!";
-					} else if (gasSensorValue >= 25 && gasSensorValue < 51) {
-						title = "🚨🚨 Detectamos nível MÉDIO de vazamento em seu local! ";
-						body = "Verifique as condições de monitoramento do seu cômodo...";
-					} else {
-						title = "🚨🚨🚨 Detectamos nível ALTO de vazamento em seu local!";
-						body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
-					}
-					
-					NotificationDTO notificationDTO = new NotificationDTO();
-					notificationDTO.setUserEmail(email);
-					notificationDTO.setMessage(body);
-					notificationDTO.setTitle(title);
+					NotificationDTO notificationDTO = createNotificationContentBasedOnGasValue(gasSensorValue, email);
 					
 					List<String> ids = new ArrayList<>();
 					ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
 
-					if (userRoom != null && userRoom.isNotificationOn()) {
+					if (userRoom.isNotificationOn()) {
 						FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();
 						firebaseNotificationDTO.setNotification(notificationDTO);
 						firebaseNotificationDTO.setRegistration_ids(ids);
@@ -212,6 +192,32 @@ public class NotificationServiceImpl implements NotificationService {
 		
 
 		return responseDTO;
+	}
+	
+	private NotificationDTO createNotificationContentBasedOnGasValue(Long gasSensorValue, String email) {
+		String title = "";
+		String body = "";
+		
+		if (gasSensorValue <= 0) {
+			title = "Apenas atualização de status...";
+			body = "Tudo em paz! Sem vazamento de gás no momento.";
+		} else if (gasSensorValue <= 24) {
+			title = "🚨 Atenção!";
+			body = "Detectamos nível BAIXO de vazamento em seu local!";
+		} else if (gasSensorValue <= 50) {
+			title = "🚨🚨 Detectamos nível MÉDIO de vazamento em seu local! ";
+			body = "Verifique as condições de monitoramento do seu cômodo...";
+		} else {
+			title = "🚨🚨🚨 Detectamos nível ALTO de vazamento em seu local!";
+			body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
+		}
+		
+		NotificationDTO notificationDTO = new NotificationDTO();
+		notificationDTO.setUserEmail(email);
+		notificationDTO.setMessage(body);
+		notificationDTO.setTitle(title);
+		
+		return notificationDTO;
 	}
 
 	public List<RevisionDTO> getRevisions(String id) {

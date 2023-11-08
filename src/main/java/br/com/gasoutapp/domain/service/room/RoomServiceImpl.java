@@ -121,18 +121,14 @@ public class RoomServiceImpl implements RoomService {
 	@Transactional
 	@Override
 	public RoomDTO sendRoomSensorValue(SensorDTO dto) {
+		User user = userService.findByEmail(dto.getUserEmail());
+		
 		RoomNameEnum roomNameDTO = getRoomNameById(dto.getRoomNameId());
-
+		
+		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
+		
 		Room newRoom = new Room();
 
-		var login = dto.getUserEmail();
-
-		User user = userService.findByLogin(login);
-		if (user == null) {
-			throw new NotFoundException("Usuario nao encontrado.");
-		}
-
-		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
 		for (Room room : rooms) {
 			if (room.getName() == roomNameDTO) {
 				newRoom = room;
@@ -154,34 +150,36 @@ public class RoomServiceImpl implements RoomService {
 				sensorRepository.save(newSensor);
 
 				if (dto.getSensorType() == SensorTypeEnum.GAS) {
-					Double gasSensorValue = dto.getSensorValue().doubleValue();
-
-					if (gasSensorValue <= 0) {
-						newRoom.setNotificationOn(false);
-						newRoom.setAlarmOn(false);
-						newRoom.setSprinklersOn(false);
-					} else if (gasSensorValue <= 25) {
-						newRoom.setNotificationOn(true);
-						newRoom.setAlarmOn(false);
-						newRoom.setSprinklersOn(false);
-					} else if (gasSensorValue <= 50) {
-						newRoom.setNotificationOn(true);
-						newRoom.setAlarmOn(true);
-						newRoom.setSprinklersOn(false);
-					} else {
-						newRoom.setNotificationOn(true);
-						newRoom.setAlarmOn(true);
-						newRoom.setSprinklersOn(true);
-					}
+					updateRoomStateBasedOnGasSensorValue(newRoom, dto.getSensorValue());
 				}
-
-				repository.save(newRoom);
 			}
 		}
 
 		return parseToDTO(newRoom,
 				sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS),
 				sensorRepository.findRecentValuesByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.UMIDADE));
+	}
+	
+	private void updateRoomStateBasedOnGasSensorValue(Room room, Long gasSensorValue) {
+	    if (gasSensorValue <= 0) {
+	        room.setNotificationOn(false);
+	        room.setAlarmOn(false);
+	        room.setSprinklersOn(false);
+	    } else if (gasSensorValue <= 25) {
+	        room.setNotificationOn(true);
+	        room.setAlarmOn(false);
+	        room.setSprinklersOn(false);
+	    } else if (gasSensorValue <= 50) {
+	        room.setNotificationOn(true);
+	        room.setAlarmOn(true);
+	        room.setSprinklersOn(false);
+	    } else {
+	        room.setNotificationOn(true);
+	        room.setAlarmOn(true);
+	        room.setSprinklersOn(true);
+	    }
+	    
+		repository.save(room);
 	}
 
 	@Override
