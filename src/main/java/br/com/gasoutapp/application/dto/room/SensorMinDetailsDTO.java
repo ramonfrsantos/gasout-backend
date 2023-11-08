@@ -1,6 +1,7 @@
 package br.com.gasoutapp.application.dto.room;
 
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import br.com.gasoutapp.infrastructure.db.entity.room.Sensor;
 import lombok.Data;
@@ -10,10 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SensorMinDetailsDTO {
 	private Long sensorValue;
-	private Date timestamp;
+	private ZonedDateTime timestamp;
 
 	public SensorMinDetailsDTO(Sensor sensor) {
-		this.sensorValue = sensor.getSensorValue();
-		this.timestamp = sensor.getTimestamp();
+		this.sensorValue = sensor.getSensorValue();	
+		this.timestamp = sensor.getTimestamp().toInstant().atZone(ZoneId.of("America/Sao_Paulo"));
 	}
 }
