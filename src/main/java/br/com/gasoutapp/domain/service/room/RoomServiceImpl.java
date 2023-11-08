@@ -1,6 +1,7 @@
 package br.com.gasoutapp.domain.service.room;
 
 import static br.com.gasoutapp.infrastructure.utils.JsonUtil.convertToObjectArray;
+import static br.com.gasoutapp.infrastructure.utils.DateUtils.differenceInMinutes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,7 @@ import br.com.gasoutapp.application.dto.room.RoomNameDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
 import br.com.gasoutapp.application.dto.room.SensorDTO;
 import br.com.gasoutapp.domain.exception.AlreadyExistsException;
+import br.com.gasoutapp.domain.exception.ListSizeNotValidException;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
@@ -50,7 +52,7 @@ public class RoomServiceImpl implements RoomService {
 	private AuditReader auditReader;
 
 	private static final int GAS_VALUE_LIST_LIMIT_SIZE = 12;
-	private static final int SENSOR_MEASUREMENT_DELAY_IN_MINUTES = 0;
+	private static final int SENSOR_MEASUREMENT_DELAY_IN_MINUTES = 5;
 
 	@Override
 	public List<RoomNameDTO> getAllRooms() {
@@ -135,16 +137,21 @@ public class RoomServiceImpl implements RoomService {
 			if (room.getName() == roomNameDTO) {
 				newRoom = room;
 
-				if (getMinutesDifference(new Date(),
-						sensorRepository.findRecentSensorByRoom(newRoom, dto.getSensorType()).get(0)
-								.getTimestamp()) > SENSOR_MEASUREMENT_DELAY_IN_MINUTES) {
-					Sensor sensor = new Sensor();
-					sensor.setRoom(newRoom);
-					sensor.setSensorType(dto.getSensorType());
-					sensor.setSensorValue(dto.getSensorValue());
-					sensor.setTimestamp(new Date());
-					sensorRepository.save(sensor);
+				Sensor newSensor = new Sensor();
+				Sensor mostRecentSensor = sensorRepository.findRecentSensorByRoom(newRoom, dto.getSensorType()).get(0);
+
+				if (differenceInMinutes(new Date(),
+						mostRecentSensor.getTimestamp()) < SENSOR_MEASUREMENT_DELAY_IN_MINUTES) {
+					newSensor = mostRecentSensor;
+				} else {
+					deleteOldestSensorValue(newRoom, dto.getSensorType());
 				}
+				
+				newSensor.setRoom(newRoom);
+				newSensor.setSensorType(dto.getSensorType());
+				newSensor.setSensorValue(dto.getSensorValue());
+				newSensor.setTimestamp(new Date());
+				sensorRepository.save(newSensor);
 
 				if (dto.getSensorType() == SensorTypeEnum.GAS) {
 					Double gasSensorValue = dto.getSensorValue().doubleValue();
@@ -297,6 +304,15 @@ public class RoomServiceImpl implements RoomService {
 	public List<Room> findAllByUserEmail(String email) {
 		return repository.findAllByUserEmail(email);
 	}
+	
+	private void deleteOldestSensorValue(Room room, SensorTypeEnum sensorType) {
+		List<Sensor> sensors = sensorRepository.findOldestSensorByRoom(room, sensorType);
+		if(sensors.size() == GAS_VALUE_LIST_LIMIT_SIZE) {
+			sensorRepository.delete(sensors.get(0));			
+		} else {
+			throw new ListSizeNotValidException("A lista de valores possui tamanho invalido.");
+		}
+	}
 
 	private void createSensors(Room room) {
 		for (int i = 0; i < GAS_VALUE_LIST_LIMIT_SIZE; i++) {
@@ -341,12 +357,4 @@ public class RoomServiceImpl implements RoomService {
 		return roomDTO;
 	}
 
-	public static long getMinutesDifference(Date dataRecente, Date dataAntiga) {
-		long milissegundosRecente = dataRecente.getTime();
-		long milissegundosAntiga = dataAntiga.getTime();
-
-		long diferencaEmMilissegundos = milissegundosRecente - milissegundosAntiga;
-
-		return diferencaEmMilissegundos / (60 * 1000);
-	}
 }
