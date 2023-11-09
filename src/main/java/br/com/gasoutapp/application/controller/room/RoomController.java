@@ -9,7 +9,6 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -76,7 +75,6 @@ public class RoomController extends BaseRestController {
 	}
 
 	@GetMapping("/{email}")
-	@Cacheable("comodos")
 	@Operation(summary = "Buscar cômodos por email e por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getAllUserRooms(@PathVariable String email,
 			@RequestParam(required = false) Integer roomNameId) {
