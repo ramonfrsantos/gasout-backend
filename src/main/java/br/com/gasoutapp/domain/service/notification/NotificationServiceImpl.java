@@ -31,6 +31,7 @@ import br.com.gasoutapp.domain.service.room.RoomService;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
 import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
+import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
 import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
 import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import br.com.gasoutapp.infrastructure.db.entity.user.User;
@@ -151,19 +152,19 @@ public class NotificationServiceImpl implements NotificationService {
 				if (room.getName() == roomName) {
 					Room userRoom = room;
 										
-					Long gasSensorValue = sensor.getSensorValue();
+					Long sensorValue = sensor.getSensorValue();
 					
-					details.setSensorValue(gasSensorValue);
+					details.setSensorValue(sensorValue);
 					details.setSensorType(sensor.getSensorType());
 					details.setRoomNameId(roomName.getNameId());
 					details.setUserEmail(email);
 					
-					NotificationDTO notificationDTO = createNotificationContentBasedOnGasValue(gasSensorValue, email);
-					
-					List<String> ids = new ArrayList<>();
-					ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
-
-					if (userRoom.isNotificationOn()) {
+					if(sensor.getSensorType() == SensorTypeEnum.GAS && userRoom.isNotificationOn()) {
+						List<String> ids = new ArrayList<>();
+						ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
+						
+						NotificationDTO notificationDTO = createNotificationContentBasedOnGasValue(sensorValue, email);
+						
 						FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();
 						firebaseNotificationDTO.setNotification(notificationDTO);
 						firebaseNotificationDTO.setRegistration_ids(ids);
