@@ -18,7 +18,7 @@ firebase:
 api:
    security:
       token:
-         secret: ${JWT_SECRET:gasout-secret-key}
+         secret: ${JWT_SECRET}
 
 # Spring config
 spring:
