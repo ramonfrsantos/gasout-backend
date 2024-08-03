@@ -31,6 +31,11 @@ spring:
       url: jdbc:mysql://localhost:3306/gasoutdev?createDatabaseIfNotExist=true
       username: root
       password:
+   flyway:
+      url: jdbc:mysql://localhost:3306/
+      schemas: audit
+      user: ${spring.datasource.username}
+      password: ${spring.datasource.password}
 
 springdoc:
    swagger-ui:
