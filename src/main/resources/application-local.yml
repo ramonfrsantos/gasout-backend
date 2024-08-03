@@ -8,7 +8,7 @@ server:
 user:
    admin:
       email: contato.gasout@gmail.com
-      password: 
+      password: GasOut@2022!
       name: GasOut ADMIN
 
 spring:
@@ -20,7 +20,7 @@ spring:
       host: smtp.gmail.com
       port: 587
       username: contato.gasout@gmail.com
-      password:
+      password: vjtvrwgangxbawwm
       properties:
          mail:
             smtp:
@@ -30,7 +30,7 @@ spring:
    datasource:
       url: jdbc:mysql://localhost:3306/gasoutdev?createDatabaseIfNotExist=true
       username: root
-      password:
+      password: root
    flyway:
       url: jdbc:mysql://localhost:3306/
       schemas: audit

@@ -79,7 +79,7 @@ public class TokenService {
 	}
 
 	public boolean isValidToken(Claims claim) {
-		var user = repository.findByLogin(claim.getSubject());
+		var user = repository.findByEmail(claim.getSubject());
 
 		return user.isPresent();
 	}

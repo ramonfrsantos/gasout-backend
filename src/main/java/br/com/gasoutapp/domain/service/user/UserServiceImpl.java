@@ -15,6 +15,7 @@ import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
+import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -39,6 +40,12 @@ import br.com.gasoutapp.infrastructure.db.repository.UserRepository;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+	@Value("${spring.mail.username}")
+	private String companyEmail;
+
+	@Value("${user.admin.email}")
+	private String adminEmail;
+
 	@Autowired
 	private UserRepository repository;
 
@@ -47,12 +54,6 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private JavaMailSender mailSender;
-
-	@Value("${spring.mail.username}")
-	private String companyEmail;
-
-	@Value("${user.admin.email}")
-	private String adminEmail;
 
 	@Autowired
 	private EntityManagerFactory factory;
@@ -108,27 +109,11 @@ public class UserServiceImpl implements UserService {
 	public String sendVerificationMail(String login) {
 		log.info("Preparando para enviar a mensagem...");
 
-		var verificationCode = createRandomCode(6, "0123456789");
+		User newUser = generateNewCodeForUser(login);
 
-		User newUser;
-		newUser = findByEmail(login);
-		newUser.setVerificationCode(verificationCode);
-		newUser = repository.save(newUser);
+		mailSender.send(getEmailMessage(newUser));
 
-		var fullName = newUser.getName();
-		var firstName = fullName.split(" ", 0)[0];
-
-		var message = new SimpleMailMessage();
-		message.setFrom(companyEmail);
-		message.setTo(newUser.getEmail());
-		message.setText("Olá, " + firstName + "! Seu código de verificação para a alteração da senha é:\n\n"
-				+ newUser.getVerificationCode()
-				+ "\n\nAgora é só entrar no aplicativo GasOut e escolher uma nova senha.");
-		message.setSubject("Alteração de senha no aplicativo GasOut");
-
-		mailSender.send(message);
-
-		log.info("A Mensagem foi enviada.");
+		log.info("A mensagem foi enviada.");
 
 		return newUser.getVerificationCode();
 	}
@@ -173,7 +158,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User findByLogin(String login) {
-		var optUser = repository.findByLogin(login);
+		var optUser = repository.findByEmail(login);
 
 		if (optUser.isEmpty()) {
 			throw new NotFoundException(String.format("Usuario com login [%s] nao foi encontrado.", login));
@@ -219,10 +204,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<RevisionDTO> getRevisions(String id) {
-		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
-
-		var auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(User.class, true)
-				.add(AuditEntity.id().eq(id));
+		var auditQuery = getAuditQuery(id);
 
 		List<RevisionDTO> details = new ArrayList<>();
 
@@ -240,7 +222,14 @@ public class UserServiceImpl implements UserService {
 
 		return details;
 	}
-	
+
+	private AuditQuery getAuditQuery(String id) {
+		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
+
+		return auditReader.createQuery().forRevisionsOfEntityWithChanges(User.class, true)
+				.add(AuditEntity.id().eq(id));
+	}
+
 	public List<UserDTO> parseToDTO(List<User> list) {
 		return list.stream().map(this::parseToDTO).toList();
 	}
@@ -266,5 +255,29 @@ public class UserServiceImpl implements UserService {
 		}
 
 		return newUser;
+	}
+
+	private User generateNewCodeForUser(String login) {
+		var verificationCode = createRandomCode(6, "0123456789");
+
+		User newUser;
+		newUser = findByEmail(login);
+		newUser.setVerificationCode(verificationCode);
+		return repository.save(newUser);
+	}
+
+	private SimpleMailMessage getEmailMessage(User newUser) {
+		var fullName = newUser.getName();
+		var firstName = fullName.split(" ", 0)[0];
+
+		var message = new SimpleMailMessage();
+		message.setFrom(companyEmail);
+		message.setTo(newUser.getEmail());
+		message.setText("Olá, " + firstName + "! Seu código de verificação para a alteração da senha é:\n\n"
+				+ newUser.getVerificationCode()
+				+ "\n\nAgora é só entrar no aplicativo GasOut e escolher uma nova senha.");
+		message.setSubject("Alteração de senha no aplicativo GasOut");
+
+		return message;
 	}
 }

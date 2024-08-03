@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@NoArgsConstructor public class UserDTO {
+@NoArgsConstructor
+public class UserDTO {
 	private String id;
 	private String name;
 	private String email;
@@ -24,6 +25,8 @@ import lombok.NoArgsConstructor;
 		this.id = user.getId();
 		this.name = user.getName();
 		this.email = user.getEmail();
+		this.password = user.getPassword();
+		this.verificationCode = user.getVerificationCode();
 	}
 
 	public UserDTO(String email) {
