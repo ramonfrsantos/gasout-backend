@@ -5,8 +5,10 @@ import java.util.List;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class RoomDTO {
 	private String id;
 	private Long gasSensorValue;
@@ -17,9 +19,6 @@ public class RoomDTO {
 	private Boolean alarmOn;
 	private Boolean sprinklersOn;
 	private List<SensorMinDetailsDTO> recentGasSensorValues;
-
-	public RoomDTO() {
-	}
 
 	public RoomDTO(Room entity) {
 		super();

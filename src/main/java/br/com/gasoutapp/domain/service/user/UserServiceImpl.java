@@ -8,16 +8,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 
+import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
 
-import org.hibernate.envers.AuditReader;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.exception.UserAlreadyRegisteredException;
 import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
-import br.com.gasoutapp.infrastructure.config.security.LoginResultDTO;
+import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.TokenService;
 import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
 import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
@@ -37,9 +36,8 @@ import br.com.gasoutapp.infrastructure.db.entity.user.User;
 import br.com.gasoutapp.infrastructure.db.repository.UserRepository;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
-	
-    private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
 
 	@Autowired
 	private UserRepository repository;
@@ -56,28 +54,22 @@ public class UserServiceImpl implements UserService {
 	@Value("${user.admin.email}")
 	private String adminEmail;
 
-	@Value("${user.admin.password}")
-	private String adminPassword;
-
-	@Value("${user.admin.name}")
-	private String adminName;
-
 	@Autowired
-	private AuditReader auditReader;
+	private EntityManagerFactory factory;
 
 	@Transactional
 	public UserDTO register(UserDTO userDTO) {
-		User newUser = create(userDTO);
+		var newUser = create(userDTO);
 
 		return parseToDTO(newUser);
 	}
 
 	@Override
 	public User create(UserDTO userDTO) {
-		Optional<User> optUser = repository.findByEmail(userDTO.getEmail());
+		var optUser = repository.findByEmail(userDTO.getEmail());
 
 		if (optUser.isPresent()) {
-			throw new UserAlreadyRegisteredException();
+			throw new UserAlreadyRegisteredException("Usuário com esse email já foi cadastrado.");
 		}
 
 		return repository.save(parseDTOToEntity(userDTO));
@@ -85,7 +77,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public String delete(String login) {
-		User user = findByLogin(login);
+		var user = findByLogin(login);
 		user.setDeleted(true);
 
 		repository.save(user);
@@ -100,36 +92,33 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public String getVerificationCode(String login) {
-		User user = findByEmail(login);
+		var user = findByEmail(login);
 
 		return user.getVerificationCode();
 	}
 
 	@Override
 	public boolean checkIfCodesAreEqual(String login, String newCode) {
-		User user = findByEmail(login);
+		var user = findByEmail(login);
 
 		return user.getVerificationCode().equals(newCode);	
 	}
 
 	@Override
 	public String sendVerificationMail(String login) {
+		log.info("Preparando para enviar a mensagem...");
+
+		var verificationCode = createRandomCode(6, "0123456789");
+
 		User newUser;
-		User user = findByEmail(login);
-
-		newUser = user;
-
-		logger.info("Preparando para enviar a mensagem...");
-
-		String verificationCode = createRandomCode(6, "0123456789");
-
+		newUser = findByEmail(login);
 		newUser.setVerificationCode(verificationCode);
 		newUser = repository.save(newUser);
 
-		String fullName = newUser.getName();
-		String firstName = fullName.split(" ", 0)[0];
+		var fullName = newUser.getName();
+		var firstName = fullName.split(" ", 0)[0];
 
-		SimpleMailMessage message = new SimpleMailMessage();
+		var message = new SimpleMailMessage();
 		message.setFrom(companyEmail);
 		message.setTo(newUser.getEmail());
 		message.setText("Olá, " + firstName + "! Seu código de verificação para a alteração da senha é:\n\n"
@@ -139,14 +128,15 @@ public class UserServiceImpl implements UserService {
 
 		mailSender.send(message);
 
-		logger.info("A Mensagem foi enviada.");
+		log.info("A Mensagem foi enviada.");
 
 		return newUser.getVerificationCode();
 	}
 
 	@Override
 	public UserDTO refreshPassword(LoginDTO dto) {
-		User newUser = findByEmail(dto.getLogin());
+		var newUser = findByEmail(dto.getLogin());
+
 		if (dto.getPassword() != null) {
 			newUser.setPassword(CriptexCustom.encrypt(dto.getPassword()));
 			repository.save(newUser);
@@ -166,15 +156,15 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public LoginResultDTO getDtoByUser(User user, String tokenFirebase) {
-		LoginResultDTO dto = this.tokenService.createTokenForUser(user);
+	public LoginResultDTO getDtoByUser(User user) {
+		var dto = this.tokenService.createTokenForUser(user);
 
 		dto.setUserId(user.getId());
-		if (user.getName() != null && !user.getName().equals("")) {
+		if (user.getName() != null && !user.getName().isEmpty()) {
 			dto.setUserName(normalizeString(user.getName()));
 		}
 
-		user.setTokenFirebase(CriptexCustom.encrypt(tokenFirebase));
+		user.setTokenFirebase(CriptexCustom.encrypt(null));
 
 		repository.save(user);
 
@@ -183,32 +173,36 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User findByLogin(String login) {
-		Optional<User> optUser = repository.findByLogin(login);
-		if (optUser.isPresent()) {
-			return optUser.get();
-		} else {
+		var optUser = repository.findByLogin(login);
+
+		if (optUser.isEmpty()) {
 			throw new NotFoundException(String.format("Usuario com login [%s] nao foi encontrado.", login));
 		}
+
+		return optUser.get();
 	}
 	
 	@Override
 	public User findByLoginAndPassword(String login, String password) {
-		Optional<User> optUser = repository.findByLoginAndPassword(login, password);
-		if (optUser.isPresent()) {
-			return optUser.get();
-		} else {
+		var optUser = repository.findByLoginAndPassword(login, password);
+
+		if (optUser.isEmpty()) {
 			throw new NotFoundException("Usuario com senha e login informados nao foi encontrado.");
 		}
+
+		return optUser.get();
+
 	}
 
 	@Override
 	public User findByEmail(String email) {
-		Optional<User> optUser = repository.findByEmail(email);
-		if (optUser.isPresent()) {
-			return optUser.get();
-		} else {
+		var optUser = repository.findByEmail(email);
+
+		if (optUser.isEmpty()) {
 			throw new NotFoundException(String.format("Usuario com email [%s] nao foi encontrado.", email));
 		}
+
+		return optUser.get();
 	}
 
 	@Override
@@ -225,15 +219,16 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<RevisionDTO> getRevisions(String id) {
-		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(User.class, true)
+		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
+
+		var auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(User.class, true)
 				.add(AuditEntity.id().eq(id));
 
 		List<RevisionDTO> details = new ArrayList<>();
 
 		for (Object revision : auditQuery.getResultList()) {
-			RevisionDTO r = new RevisionDTO();
-
-			Object[] objArray = convertToObjectArray(revision);
+			var r = new RevisionDTO();
+			var objArray = convertToObjectArray(revision);
 
 			r.setEntity(objArray[0]);
 			r.setRevisionDetails(objArray[1]);
@@ -250,24 +245,18 @@ public class UserServiceImpl implements UserService {
 		return list.stream().map(this::parseToDTO).toList();
 	}
 
-	public Page<UserDTO> parseToDTO(Page<User> page) {
-		return page.map(UserDTO::new);
-	}
-
 	public UserDTO parseToDTO(User user) {
 		return new UserDTO(user);
 	}
 
 	public User parseDTOToEntity(UserDTO userDTO) {
-		User newUser = new User();
-
+		var newUser = new User();
 		newUser.setName(normalizeString(userDTO.getName()));
 		newUser.setEmail(userDTO.getEmail());
 		newUser.setLogin(userDTO.getEmail());
 		newUser.setLastUpdate(new Date());
 
-		String password = CriptexCustom.encrypt(userDTO.getPassword());
-
+		var password = CriptexCustom.encrypt(userDTO.getPassword());
 		newUser.setPassword(password);
 
 		if (userDTO.getEmail().equals(adminEmail)) {

@@ -10,13 +10,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
 
-import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import br.com.gasoutapp.application.dto.audit.RevisionDTO;
@@ -50,14 +49,14 @@ public class RoomServiceImpl implements RoomService {
 	private UserService userService;
 
 	@Autowired
-	private AuditReader auditReader;
+	private EntityManagerFactory factory;
 
 	private static final int GAS_VALUE_LIST_LIMIT_SIZE = 12;
 	private static final int SENSOR_MEASUREMENT_DELAY_IN_MINUTES = 0;
 
 	@Override
 	public List<RoomNameDTO> getAllRooms() {
-		return Arrays.asList(RoomNameEnum.values()).stream()
+		return Arrays.stream(RoomNameEnum.values())
 				.map(room -> new RoomNameDTO(room.getNameId(), room.getNameDescription())).toList();
 	}
 
@@ -68,9 +67,9 @@ public class RoomServiceImpl implements RoomService {
 		if (nameId == null || nameId == 0) {
 			rooms = parseToDTO(repository.findAllByUserEmail(userService.findByLogin(login).getEmail()));
 		} else {
-			RoomNameEnum roomName = getRoomNameById(nameId);
+			var roomName = getRoomNameById(nameId);
 
-			RoomDTO roomDTO = getUserRoomByName(login, roomName);
+			var roomDTO = getUserRoomByName(login, roomName);
 			if (roomDTO != null) {
 				rooms.add(roomDTO);
 			}
@@ -84,13 +83,13 @@ public class RoomServiceImpl implements RoomService {
 		List<Room> newUserRooms;
 		User newUser;
 
-		User user = userService.findByLogin(email);
+		var user = userService.findByLogin(email);
 		if (user == null) {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
 		newUser = user;
 
-		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
+		var rooms = repository.findAllByUserEmail(user.getEmail());
 		for (Room room : rooms) {
 			if (room.getName() == roomName) {
 				throw new AlreadyExistsException("Esse cômodo já foi cadastrado.");
@@ -98,14 +97,12 @@ public class RoomServiceImpl implements RoomService {
 		}
 		newUserRooms = rooms;
 
-		Room newRoom = new Room();
-
+		var newRoom = new Room();
 		newRoom.setName(roomName);
 		newRoom.setUserEmail(user.getEmail());
 		newRoom.setNotificationOn(false);
 		newRoom.setAlarmOn(false);
 		newRoom.setSprinklersOn(false);
-
 		newRoom = repository.save(newRoom);
 
 		createSensors(newRoom);
@@ -122,20 +119,18 @@ public class RoomServiceImpl implements RoomService {
 	@Transactional
 	@Override
 	public RoomDTO sendRoomSensorValue(SensorDTO dto) {
-		User user = userService.findByEmail(dto.getUserEmail());
+		var user = userService.findByEmail(dto.getUserEmail());
+		var roomNameDTO = getRoomNameById(dto.getRoomNameId());
+		var rooms = repository.findAllByUserEmail(user.getEmail());
 		
-		RoomNameEnum roomNameDTO = getRoomNameById(dto.getRoomNameId());
-		
-		List<Room> rooms = repository.findAllByUserEmail(user.getEmail());
-		
-		Room newRoom = new Room();
+		var newRoom = new Room();
 
 		for (Room room : rooms) {
 			if (room.getName() == roomNameDTO) {
 				newRoom = room;
 
-				Sensor newSensor = new Sensor();
-				Sensor mostRecentSensor = sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, dto.getSensorType()).get(0);
+				var newSensor = new Sensor();
+				var mostRecentSensor = sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, dto.getSensorType()).get(0);
 
 				if (differenceInMinutes(new Date(),
 						mostRecentSensor.getTimestamp()) < SENSOR_MEASUREMENT_DELAY_IN_MINUTES) {
@@ -185,7 +180,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public String deleteRoom(String id) {
-		Room room = repository.findById(id)
+		var room = repository.findById(id)
 				.orElseThrow(() -> new NotFoundException("Cômodo com o id informado não está cadastrado."));
 
 		room.setDeleted(true);
@@ -201,8 +196,8 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public RoomDTO getUserRoomByName(String email, RoomNameEnum roomName) {
-		User user = userService.findByLogin(email);
-		Optional<Room> optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
+		var user = userService.findByLogin(email);
+		var optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 
 		if (optRoom.isPresent()) {
 			return parseToDTO(optRoom.get(),
@@ -216,11 +211,10 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public void deleteAllByUser(String email) {
-		User user = userService.findByLogin(email);
+		var user = userService.findByLogin(email);
 		user.setRooms(null);
 
 		for (Room room : repository.findAllByUserEmail(email)) {
-
 			for (Sensor sensor : sensorRepository.findAllByRoom(room))
 				sensorRepository.delete(sensor);
 
@@ -230,15 +224,15 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public RoomDTO updateSwitches(RoomSwitchesDTO dto) {
-		User user = userService.findByLogin(dto.getUserEmail());
-		RoomNameEnum roomName = getRoomNameById(dto.getNameId());
-		Optional<Room> optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
+		var user = userService.findByLogin(dto.getUserEmail());
+		var roomName = getRoomNameById(dto.getNameId());
+		var optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 
 		if (optRoom.isEmpty()) {
 			throw new NotFoundException("Comodo nao cadastrado.");
 		}
 
-		Room room = optRoom.get();
+		var room = optRoom.get();
 
 		if (dto.getAlarmOn() != null)
 			room.setAlarmOn(dto.getAlarmOn());
@@ -247,22 +241,11 @@ public class RoomServiceImpl implements RoomService {
 		if (dto.getSprinklersOn() != null)
 			room.setSprinklersOn(dto.getSprinklersOn());
 
-		Room newRoom = repository.save(room);
+		var newRoom = repository.save(room);
 
 		return parseToDTO(newRoom,
 				sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(newRoom, SensorTypeEnum.GAS),
 				sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(room, SensorTypeEnum.UMIDADE));
-	}
-
-	@Override
-	public RoomNameEnum getRoomNameByDescription(String description) {
-		for (RoomNameEnum roomEnum : RoomNameEnum.values()) {
-			if (roomEnum.getNameDescription().equalsIgnoreCase(description.toLowerCase())) {
-				return roomEnum;
-			}
-		}
-
-		throw new NotFoundException("Nao foi encontrado nenhum comodo com esse nome.");
 	}
 
 	@Override
@@ -278,16 +261,17 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public List<RevisionDTO> getRevisions(String id) {
-		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Room.class, true)
+		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
+
+		var auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Room.class, true)
 				.add(AuditEntity.id().eq(id));
 
 		List<RevisionDTO> details = new ArrayList<>();
 
 		for (Object revision : auditQuery.getResultList()) {
-			RevisionDTO r = new RevisionDTO();
+			var r = new RevisionDTO();
 
-			Object[] objArray = convertToObjectArray(revision);
-
+			var objArray = convertToObjectArray(revision);
 			r.setEntity(objArray[0]);
 			r.setRevisionDetails(objArray[1]);
 			r.setRevisionType(objArray[2]);
@@ -305,7 +289,7 @@ public class RoomServiceImpl implements RoomService {
 	}
 	
 	private void deleteOldestSensorValue(Room room, SensorTypeEnum sensorType) {
-		List<Sensor> sensors = sensorRepository.findOldestSensorByRoomOrderByTimestampAsc(room, sensorType);
+		var sensors = sensorRepository.findOldestSensorByRoomOrderByTimestampAsc(room, sensorType);
 		if(sensors.size() == GAS_VALUE_LIST_LIMIT_SIZE) {
 			sensorRepository.delete(sensors.get(0));			
 		} else {
@@ -315,20 +299,20 @@ public class RoomServiceImpl implements RoomService {
 
 	private void createSensors(Room room) {
 		for (int i = 0; i < GAS_VALUE_LIST_LIMIT_SIZE; i++) {
-			Date dateNow = new Date();
+			var dateNow = new Date();
 
-			Sensor sensorGas = new Sensor();
+			var sensorGas = new Sensor();
 			sensorGas.setRoom(room);
 			sensorGas.setSensorType(SensorTypeEnum.GAS);
-			sensorGas.setSensorValue(0l);
+			sensorGas.setSensorValue(0L);
 			sensorGas.setTimestamp(dateNow);
 
 			sensorRepository.save(sensorGas);
 
-			Sensor sensorUmidity = new Sensor();
+			var sensorUmidity = new Sensor();
 			sensorUmidity.setRoom(room);
 			sensorUmidity.setSensorType(SensorTypeEnum.UMIDADE);
-			sensorUmidity.setSensorValue(0l);
+			sensorUmidity.setSensorValue(0L);
 			sensorUmidity.setTimestamp(dateNow);
 
 			sensorRepository.save(sensorUmidity);
@@ -343,12 +327,9 @@ public class RoomServiceImpl implements RoomService {
 				.toList();
 	}
 
-	public Page<RoomDTO> parseToDTO(Page<Room> page) {
-		return page.map(RoomDTO::new);
-	}
 
-public RoomDTO parseToDTO(Room room, List<Sensor> recentGasSensorValues, List<Sensor> recentUmiditySensorValues) {
-		RoomDTO roomDTO = new RoomDTO(room);
+	public RoomDTO parseToDTO(Room room, List<Sensor> recentGasSensorValues, List<Sensor> recentUmiditySensorValues) {
+		var roomDTO = new RoomDTO(room);
 		roomDTO.setRecentGasSensorValues(recentGasSensorValues.stream().map(SensorMinDetailsDTO::new).toList());
 		roomDTO.setGasSensorValue(recentGasSensorValues.get(0).getSensorValue());
 		roomDTO.setUmiditySensorValue(recentUmiditySensorValues.get(0).getSensorValue());

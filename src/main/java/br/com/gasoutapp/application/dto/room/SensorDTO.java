@@ -6,7 +6,6 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 
 import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
-import br.com.gasoutapp.infrastructure.db.entity.room.Sensor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -28,13 +27,5 @@ public class SensorDTO {
 	
 	@NotNull
 	private Date timestamp;
-
-	public SensorDTO(Sensor sensor) {
-		this.userEmail = sensor.getRoom().getUserEmail();
-		this.roomNameId = sensor.getRoom().getName().getNameId();
-		this.sensorValue = sensor.getSensorValue();
-		this.sensorType = sensor.getSensorType();
-		this.timestamp = sensor.getTimestamp();
-	}
 	
 }

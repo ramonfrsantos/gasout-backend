@@ -11,18 +11,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.hibernate.envers.AuditReader;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.notification.FirebaseNotificationDTO;
 import br.com.gasoutapp.application.dto.notification.NotificationDTO;
 import br.com.gasoutapp.application.dto.notification.PushResponseDTO;
-import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.SensorDTO;
 import br.com.gasoutapp.application.dto.room.SensorGasPayloadDTO;
 import br.com.gasoutapp.application.web.firebase.FirebaseService;
@@ -30,14 +28,15 @@ import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.room.RoomService;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
-import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
 import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
 import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
-import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import br.com.gasoutapp.infrastructure.db.entity.user.User;
 import br.com.gasoutapp.infrastructure.db.repository.NotificationRepository;
 
+import javax.persistence.EntityManagerFactory;
+
 @Service
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
 	@Autowired
@@ -50,7 +49,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private RoomService roomService;
 
 	@Autowired
-	private AuditReader auditReader;
+	private EntityManagerFactory factory;
 
 	@Autowired
 	private FirebaseService firebaseService;
@@ -60,8 +59,9 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	public List<NotificationDTO> getAllRecentNotifications(String login) {
-		User user = userService.findByLogin(login);
-		List<Notification> notifications = notificationRepository.findAllByUserEmailOrderByDateAsc(user.getEmail());
+		var user = userService.findByLogin(login);
+		var notifications = notificationRepository.findAllByUserEmailOrderByDateAsc(user.getEmail());
+
 		reverseList(notifications);
 
 		return parseToDTO(notifications);
@@ -71,21 +71,23 @@ public class NotificationServiceImpl implements NotificationService {
 		List<Notification> newUserNotifications = new ArrayList<>();
 
 		User newUser;
-		User user = userService.findByLogin(dto.getUserEmail());
+
+		var user = userService.findByLogin(dto.getUserEmail());
 
 		if (Objects.isNull(user)) {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
+
 		newUser = user;
 
-		List<Notification> notifications = notificationRepository.findAllByUserEmailOrderByDateAsc(user.getEmail());
+		var notifications = notificationRepository.findAllByUserEmailOrderByDateAsc(user.getEmail());
 		if (notifications.size() >= 10) {
 			setAllUserNotificationsNull(notifications, user);
 		} else {
 			newUserNotifications = notifications;
 		}
 
-		Notification newNotification = new Notification();
+		var newNotification = new Notification();
 
 		newNotification.setUserEmail(user.getEmail());
 		newNotification.setTitle(dto.getTitle());
@@ -97,7 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 		userService.setUserNotifications(newUserNotifications, newUser);
 
-		List<Notification> notificationsUserNull = notificationRepository.findAllByUserEmailOrderByDateAsc(null);
+		var notificationsUserNull = notificationRepository.findAllByUserEmailOrderByDateAsc(null);
 
 		if (!notificationsUserNull.isEmpty()) {
 			for (Notification notification : notificationsUserNull) {
@@ -110,7 +112,7 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	public String deleteNotification(String id) {
-		Notification notification = notificationRepository.findById(id)
+		var notification = notificationRepository.findById(id)
 				.orElseThrow(() -> new NotFoundException("Notificação não encontrada."));
 
 		notification.setDeleted(true);
@@ -137,42 +139,39 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	public PushResponseDTO sendPush(SensorGasPayloadDTO payload) {
-		PushResponseDTO responseDTO = new PushResponseDTO();
-		
+		var responseDTO = new PushResponseDTO();
 
 		for (SensorDTO sensor : payload.getSensors()) {
-			SensorDTO details = new SensorDTO();
+			var details = new SensorDTO();
 			
-			RoomNameEnum roomName = roomService.getRoomNameById(sensor.getRoomNameId());
-			String email = sensor.getUserEmail();
+			var roomName = roomService.getRoomNameById(sensor.getRoomNameId());
+			var email = sensor.getUserEmail();
 			
-			User user = userService.findByEmail(email);
+			var user = userService.findByEmail(email);
 
 			roomService.findAllByUserEmail(email).forEach(room -> {
 				if (room.getName() == roomName) {
-					Room userRoom = room;
-										
-					Long sensorValue = sensor.getSensorValue();
+                    var sensorValue = sensor.getSensorValue();
 					
 					details.setSensorValue(sensorValue);
 					details.setSensorType(sensor.getSensorType());
 					details.setRoomNameId(roomName.getNameId());
 					details.setUserEmail(email);
 					
-					if(sensor.getSensorType() == SensorTypeEnum.GAS && userRoom.isNotificationOn()) {
+					if(sensor.getSensorType() == SensorTypeEnum.GAS && room.isNotificationOn()) {
 						List<String> ids = new ArrayList<>();
 						ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
 						
-						NotificationDTO notificationDTO = createNotificationContentBasedOnGasValue(sensorValue, email);
+						var notificationDTO = createNotificationContentBasedOnGasValue(sensorValue, email);
 						
-						FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();
+						var firebaseNotificationDTO = new FirebaseNotificationDTO();
 						firebaseNotificationDTO.setNotification(notificationDTO);
 						firebaseNotificationDTO.setRegistration_ids(ids);
 
 						try {
 							firebaseService.createFirebaseNotification(firebaseNotificationDTO);
 						} catch (IOException | URISyntaxException e) {
-							e.printStackTrace();
+							log.error("Error = {}", e.getMessage());
 						} 
 	
 						responseDTO.setPushNotificationSent(true);
@@ -187,17 +186,16 @@ public class NotificationServiceImpl implements NotificationService {
 				}
 			});
 			
-			RoomDTO roomDTO = roomService.sendRoomSensorValue(details);
+			var roomDTO = roomService.sendRoomSensorValue(details);
 			responseDTO.setUpdatedRoom(roomDTO);
 		}
-		
 
 		return responseDTO;
 	}
 	
 	private NotificationDTO createNotificationContentBasedOnGasValue(Long gasSensorValue, String email) {
-		String title = "";
-		String body = "";
+		String title;
+		String body;
 		
 		if (gasSensorValue <= 0) {
 			title = "Apenas atualização de status...";
@@ -213,7 +211,7 @@ public class NotificationServiceImpl implements NotificationService {
 			body = "Entre agora em opções de monitoramento do seu cômodo para verificar o acionamento dos SPRINKLERS ou acione o SUPORTE TÉCNICO.";
 		}
 		
-		NotificationDTO notificationDTO = new NotificationDTO();
+		var notificationDTO = new NotificationDTO();
 		notificationDTO.setUserEmail(email);
 		notificationDTO.setMessage(body);
 		notificationDTO.setTitle(title);
@@ -222,7 +220,9 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	public List<RevisionDTO> getRevisions(String id) {
-		AuditQuery auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Notification.class, true)
+		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
+
+		var auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Notification.class, true)
 				.add(AuditEntity.id().eq(id));
 
 		List<RevisionDTO> details = new ArrayList<>();
@@ -244,10 +244,6 @@ public class NotificationServiceImpl implements NotificationService {
 
 	public List<NotificationDTO> parseToDTO(List<Notification> list) {
 		return list.stream().map(this::parseToDTO).toList();
-	}
-
-	public Page<NotificationDTO> parseToDTO(Page<Notification> page) {
-		return page.map(NotificationDTO::new);
 	}
 
 	public NotificationDTO parseToDTO(Notification notification) {

@@ -1,31 +1,18 @@
 package br.com.gasoutapp.application.dto.user;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import br.com.gasoutapp.infrastructure.db.entity.user.User;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserDTO {
+@NoArgsConstructor public class UserDTO {
 	private String id;
-	@Size(min = 2, message = "O nome deve conter no minimo 2 caracteres.")
 	private String name;
-	@Email(regexp = ".+[@].+[\\.].+")
 	private String email;
 	private String password;
 	private String verificationCode;
-
-	public UserDTO() {
-	}
-
-	public UserDTO(String id, String email) {
-		this.id = id;
-		this.email = email;
-	}
 
 	public UserDTO(String name, String email, String password) {
 		this.name = name;

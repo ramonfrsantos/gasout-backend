@@ -1,4 +1,4 @@
-package br.com.gasoutapp.infrastructure.config.security;
+package br.com.gasoutapp.application.dto;
 
 import java.util.Date;
 

@@ -5,8 +5,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-
 import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.notification.NotificationDTO;
 import br.com.gasoutapp.application.dto.notification.PushResponseDTO;
@@ -16,25 +14,23 @@ import br.com.gasoutapp.infrastructure.db.entity.user.User;
 
 public interface NotificationService {
 
-	public List<NotificationDTO> parseToDTO(List<Notification> list);
+	List<NotificationDTO> parseToDTO(List<Notification> list);
 
-	public Page<NotificationDTO> parseToDTO(Page<Notification> page);
+	NotificationDTO parseToDTO(Notification notification);
 
-	public NotificationDTO parseToDTO(Notification notification);
+	List<NotificationDTO> getAllNotifications();
 
-	public List<NotificationDTO> getAllNotifications();
+	List<NotificationDTO> getAllRecentNotifications(String login);
 
-	public List<NotificationDTO> getAllRecentNotifications(String login);
+	NotificationDTO createNotification(NotificationDTO dto);
 
-	public NotificationDTO createNotification(NotificationDTO dto);
+	String deleteNotification(String id);
 
-	public String deleteNotification(String id);
+	void setAllUserNotificationsNull(List<Notification> notifications, User user);
 
-	public void setAllUserNotificationsNull(List<Notification> notifications, User user);
+	Optional<Notification> findNotificationById(String id);
 
-	public Optional<Notification> findNotificationById(String id);
+	PushResponseDTO sendPush(SensorGasPayloadDTO payload) throws IOException, URISyntaxException;
 
-	public PushResponseDTO sendPush(SensorGasPayloadDTO payload) throws IOException, URISyntaxException;
-
-	public List<RevisionDTO> getRevisions(String id);
+	List<RevisionDTO> getRevisions(String id);
 }

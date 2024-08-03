@@ -9,5 +9,4 @@ public class LoginDTO {
 	@NotEmpty
 	private String login;
 	private String password;
-	private String tokenFirebase;
 }

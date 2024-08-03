@@ -8,6 +8,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
@@ -15,11 +17,11 @@ import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
 import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
-import lombok.Data;
 
 @DynamicUpdate
 @Entity
-@Data
+@Getter
+@Setter
 @Audited(withModifiedFlag = true)
 @AuditTable(value = "aud_t_room", catalog = "audit")
 @Table(name = "t_room")

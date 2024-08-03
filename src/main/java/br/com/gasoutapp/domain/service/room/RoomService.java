@@ -13,30 +13,28 @@ import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 
 public interface RoomService {
 
-	public List<RoomNameDTO> getAllRooms();
+	List<RoomNameDTO> getAllRooms();
 
-	public List<RoomDTO> getAllUserRooms(String login, Integer nameId);
+	List<RoomDTO> getAllUserRooms(String login, Integer nameId);
 
-	public RoomDTO createRoom(RoomNameEnum roomName, String email);
+	RoomDTO createRoom(RoomNameEnum roomName, String email);
 
-	public RoomDTO sendRoomSensorValue(SensorDTO dto);
+	RoomDTO sendRoomSensorValue(SensorDTO dto);
 
-	public String deleteRoom(String id);
+	String deleteRoom(String id);
 
-	public Optional<Room> findRoomById(String id);
+	Optional<Room> findRoomById(String id);
 
-	public RoomDTO getUserRoomByName(String email, RoomNameEnum roomName);
+	RoomDTO getUserRoomByName(String email, RoomNameEnum roomName);
 
-	public void deleteAllByUser(String email);
+	void deleteAllByUser(String email);
 
-	public RoomDTO updateSwitches(RoomSwitchesDTO dto);
+	RoomDTO updateSwitches(RoomSwitchesDTO dto);
 
-	public RoomNameEnum getRoomNameByDescription(String description);
-
-	public RoomNameEnum getRoomNameById(Integer id);
+	RoomNameEnum getRoomNameById(Integer id);
 	
-	public List<RevisionDTO> getRevisions(String id);
+	List<RevisionDTO> getRevisions(String id);
 
-	public List<Room> findAllByUserEmail(String email);
+	List<Room> findAllByUserEmail(String email);
 
 }

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.domain.service.auth.AuthService;
-import br.com.gasoutapp.infrastructure.config.security.LoginResultDTO;
+import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.UserJWT;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -28,13 +28,13 @@ public class AuthController {
 	}
 
 	@GetMapping("/find-by-token")
-	public UserJWT getUserByToken(@RequestParam(required = true) String accessToken) {
+	public UserJWT getUserByToken(@RequestParam String accessToken) {
 		return service.getUserByToken(accessToken);
 	}
 
 	@PostMapping("/login")
 	public LoginResultDTO login(@RequestBody LoginDTO dto) throws Exception {
-		return service.login(dto.getLogin(), dto.getPassword(), dto.getTokenFirebase());
+		return service.login(dto.getLogin(), dto.getPassword());
 	}
 
 	@PostMapping("/refresh-token")

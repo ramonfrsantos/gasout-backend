@@ -10,9 +10,4 @@ public abstract class BaseRestController {
 		return response;
 	}
 
-	protected BaseResponseDTO buildResponseMessage(String message) {
-		BaseResponseDTO response = new BaseResponseDTO();
-		response.setMessage(message);
-		return response;
-	}
 }

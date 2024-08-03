@@ -1,31 +1,19 @@
 package br.com.gasoutapp.application.dto.notification;
 
-import java.util.Date;
-
 import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class NotificationDTO {
-	private String id;
+public class NotificationGeneratorDTO {
 	private String message;
 	private String title;
-	private Date date;
 	private String userEmail;
 
-	public NotificationDTO(Notification entity) {
-		this.id = entity.getId();
+	public NotificationGeneratorDTO(Notification entity) {
 		this.message = entity.getMessage();
 		this.title = entity.getTitle();
-		this.date = entity.getDate();
 		this.userEmail = entity.getUserEmail();
-	}
-
-	public NotificationDTO(String message, String title, String userEmail) {
-		this.message = message;
-		this.title = title;
-		this.userEmail = userEmail;
 	}
 }

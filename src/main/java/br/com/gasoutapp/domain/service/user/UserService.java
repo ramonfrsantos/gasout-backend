@@ -6,7 +6,7 @@ import java.util.Optional;
 import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
-import br.com.gasoutapp.infrastructure.config.security.LoginResultDTO;
+import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
 import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
 import br.com.gasoutapp.infrastructure.db.entity.room.Room;
@@ -14,37 +14,37 @@ import br.com.gasoutapp.infrastructure.db.entity.user.User;
 
 public interface UserService {
 
-	public UserDTO register(UserDTO userDTO);
+	UserDTO register(UserDTO userDTO);
 
-	public User create(UserDTO userDTO);
+	User create(UserDTO userDTO);
 
-	public String delete(String login);
+	String delete(String login);
 
-	public List<UserDTO> findAll();
+	List<UserDTO> findAll();
 
-	public String getVerificationCode(String login);
+	String getVerificationCode(String login);
 
-	public boolean checkIfCodesAreEqual(String login, String newCode);
+	boolean checkIfCodesAreEqual(String login, String newCode);
 
-	public String sendVerificationMail(String login);
+	String sendVerificationMail(String login);
 
-	public UserDTO refreshPassword(LoginDTO dto);
+	UserDTO refreshPassword(LoginDTO dto);
 
-	public Optional<User> findUserById(String id);
+	Optional<User> findUserById(String id);
 
-	public List<User> findAllByRoles(UserTypeEnum userType);
+	List<User> findAllByRoles(UserTypeEnum userType);
 
-	public LoginResultDTO getDtoByUser(User user, String tokenFirebase);
+	LoginResultDTO getDtoByUser(User user);
 
-	public User findByLogin(String login);
+	User findByLogin(String login);
 
-	public User findByLoginAndPassword(String login, String password);
+	User findByLoginAndPassword(String login, String password);
 
-	public User findByEmail(String email);
+	User findByEmail(String email);
 
-	public void setUserRooms(List<Room> newUserRooms, User user);
+	void setUserRooms(List<Room> newUserRooms, User user);
 
-	public void setUserNotifications(List<Notification> newUserNotifications, User user);
+	void setUserNotifications(List<Notification> newUserNotifications, User user);
 
-	public List<RevisionDTO> getRevisions(String id);
+	List<RevisionDTO> getRevisions(String id);
 }

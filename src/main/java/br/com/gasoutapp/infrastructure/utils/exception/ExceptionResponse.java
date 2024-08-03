@@ -1,7 +1,12 @@
 package br.com.gasoutapp.infrastructure.utils.exception;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Date;
 
+@Getter
+@Setter
 public class ExceptionResponse {
 	private Date timestamp;
 	private String message;
@@ -12,17 +17,4 @@ public class ExceptionResponse {
 		this.message = message;
 		this.details = details;
 	}
-
-	public Date getTimestamp() {
-		return timestamp;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public String getDetails() {
-		return details;
-	}
-
 }

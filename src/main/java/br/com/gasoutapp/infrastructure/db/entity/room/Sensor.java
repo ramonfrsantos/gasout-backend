@@ -14,15 +14,17 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
 import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
-import lombok.Data;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Audited(withModifiedFlag = true)
 @AuditTable(value = "aud_t_sensor", catalog = "audit")
 @Table(name = "t_sensor")

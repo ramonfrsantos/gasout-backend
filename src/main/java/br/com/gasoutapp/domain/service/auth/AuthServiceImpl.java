@@ -1,8 +1,6 @@
 package br.com.gasoutapp.domain.service.auth;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,13 +10,13 @@ import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.exception.WrongPasswordException;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
-import br.com.gasoutapp.infrastructure.config.security.LoginResultDTO;
+import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.TokenService;
 import br.com.gasoutapp.infrastructure.config.security.UserJWT;
 import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
-import br.com.gasoutapp.infrastructure.db.entity.user.User;
 
 @Service
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
 	@Autowired
@@ -26,9 +24,6 @@ public class AuthServiceImpl implements AuthService {
 
 	@Autowired
 	private TokenService tokenService;
-
-	@Value("${spring.mail.username}")
-	private String companyEmail;
 
 	@Value("${user.admin.email}")
 	private String adminEmail;
@@ -41,19 +36,17 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public String checkIfAdminExists() {
-		List<UserTypeEnum> roles = new ArrayList<>();
-		roles.add(UserTypeEnum.ADMIN);
+		var admins = userService.findAllByRoles(UserTypeEnum.ADMIN);
 
-		List<User> admins = userService.findAllByRoles(UserTypeEnum.ADMIN);
 		if (admins == null || admins.isEmpty()) {
-			User user = userService.create(new UserDTO(adminName, adminEmail, adminPassword));
+			var user = userService.create(new UserDTO(adminName, adminEmail, adminPassword));
 
-			String token = "";
+			var token = "";
 
 			try {
-				token = this.login(user.getLogin(), CriptexCustom.decrypt(user.getPassword()), null).getToken();
+				token = this.login(user.getLogin(), CriptexCustom.decrypt(user.getPassword())).getToken();
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error("Error = {}", e.getMessage());
 			}
 
 			return token;
@@ -63,23 +56,24 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	public LoginResultDTO login(String login, String password, String tokenFirebase) {
+	public LoginResultDTO login(String login, String password) {
 		if (password.length() < 6) {
-			throw new WrongPasswordException();
+			throw new WrongPasswordException("Senha incorreta.");
 		}
 		password = CriptexCustom.encrypt(password);
-		User user = userService.findByLoginAndPassword(login, password);
-		User userLogin = userService.findByLogin(login);
+		var user = userService.findByLoginAndPassword(login, password);
+		var userLogin = userService.findByLogin(login);
+
 		if (user == null) {
 			if (userLogin == null) {
 				throw new NotFoundException("Dados de login incorretos.");
 			} else if (!userLogin.getPassword().equals(password)) {
-				throw new WrongPasswordException();
+				throw new WrongPasswordException("Senha incorreta.");
 			} else {
 				throw new NotFoundException("Usuario nao encontrado.");
 			}
 		} else {
-			return userService.getDtoByUser(user, tokenFirebase);
+			return userService.getDtoByUser(user);
 		}
 	}
 

@@ -4,13 +4,11 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Optional;
 
+import br.com.gasoutapp.application.dto.notification.NotificationGeneratorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +25,6 @@ import br.com.gasoutapp.application.dto.notification.NotificationDTO;
 import br.com.gasoutapp.application.dto.room.SensorGasPayloadDTO;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.notification.NotificationService;
-import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,16 +58,15 @@ public class NotificationController extends BaseRestController {
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar notificação por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findNotificationById(@PathVariable String id) {
+		var optNotification = service.findNotificationById(id);
 
-		Optional<Notification> optNotification = service.findNotificationById(id);
-
-		if (!optNotification.isPresent()) {
+		if (optNotification.isEmpty()) {
 			throw new NotFoundException("Notificação não encontrada.");
 		}
 
-		EntityModel<NotificationDTO> model = EntityModel.of(new NotificationDTO(optNotification.get()));
+		var linkToUsers = linkTo(methodOn(this.getClass()).getAllNotifications());
 
-		WebMvcLinkBuilder linkToUsers = linkTo(methodOn(this.getClass()).getAllNotifications());
+		var model = EntityModel.of(new NotificationDTO(optNotification.get()));
 		model.add(linkToUsers.withRel("all-notifications"));
 
 		return buildResponse(model);
@@ -78,12 +74,11 @@ public class NotificationController extends BaseRestController {
 
 	@PostMapping
 	@Operation(summary = "Criar uma notificação", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO createNotification(@RequestBody NotificationDTO dto) {
-		
-		NotificationDTO newNotification = service.createNotification(dto);
-		
-		URI locationNotification = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-		.buildAndExpand(newNotification.getId()).toUri();
+	public BaseResponseDTO createNotification(@RequestBody NotificationGeneratorDTO generatorDTO) {
+		var dto = new NotificationDTO(generatorDTO.getMessage(), generatorDTO.getTitle(), generatorDTO.getUserEmail());
+		var newNotification = service.createNotification(dto);
+
+		var locationNotification = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newNotification.getId()).toUri();
 		
 		return buildResponse(ResponseEntity.created(locationNotification).body(newNotification));
 	}

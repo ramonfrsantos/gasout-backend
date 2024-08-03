@@ -1,26 +1,20 @@
 package br.com.gasoutapp.infrastructure.db.entity.notification;
 
-import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
-import lombok.Data;
+import javax.persistence.*;
+import java.util.Date;
 
 @DynamicUpdate
 @Entity
-@Data
+@Getter
+@Setter
 @Audited(withModifiedFlag = true)
 @AuditTable(value = "aud_t_notification", catalog = "audit")
 @Table(name = "t_notification")

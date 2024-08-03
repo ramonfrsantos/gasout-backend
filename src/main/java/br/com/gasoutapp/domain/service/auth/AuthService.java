@@ -1,15 +1,15 @@
 package br.com.gasoutapp.domain.service.auth;
 
-import br.com.gasoutapp.infrastructure.config.security.LoginResultDTO;
+import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.UserJWT;
 
 public interface AuthService {
 
-	public String checkIfAdminExists();
+	String checkIfAdminExists();
 
-	public LoginResultDTO login(String login, String password, String tokenFirebase);
+	LoginResultDTO login(String login, String password);
 
-	public UserJWT getUserByToken(String token);
+	UserJWT getUserByToken(String token);
 
-	public LoginResultDTO refreshToken(String refreshToken);
+	LoginResultDTO refreshToken(String refreshToken);
 }

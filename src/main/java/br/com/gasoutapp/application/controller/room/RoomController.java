@@ -3,14 +3,10 @@ package br.com.gasoutapp.application.controller.room;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import java.net.URI;
-import java.util.Optional;
-
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +27,6 @@ import br.com.gasoutapp.application.dto.room.SensorDTO;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.room.RoomService;
 import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
-import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,16 +54,15 @@ public class RoomController extends BaseRestController {
 	@GetMapping("/find/{id}")
 	@Operation(summary = "Buscar cômodo por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findRoomById(@PathVariable String id) {
+		var optRoom = service.findRoomById(id);
 
-		Optional<Room> optRoom = service.findRoomById(id);
-
-		if (!optRoom.isPresent()) {
+		if (optRoom.isEmpty()) {
 			throw new NotFoundException("Cômodo com o id informado não está cadastrado.");
 		}
 
-		EntityModel<RoomDTO> model = EntityModel.of(new RoomDTO(optRoom.get()));
+		var linkToUsers = linkTo(methodOn(this.getClass()).getAllRooms());
 
-		WebMvcLinkBuilder linkToUsers = linkTo(methodOn(this.getClass()).getAllRooms());
+		var model = EntityModel.of(new RoomDTO(optRoom.get()));
 		model.add(linkToUsers.withRel("all-rooms"));
 
 		return buildResponse(model);
@@ -84,10 +78,9 @@ public class RoomController extends BaseRestController {
 	@PostMapping
 	@Operation(summary = "Cadastrar cômodo", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO createRoom(@RequestParam RoomNameEnum roomName, @RequestParam String userEmail) {
+		var newRoom = service.createRoom(roomName, userEmail);
 		
-		RoomDTO newRoom = service.createRoom(roomName, userEmail);
-		
-		URI locationRoom = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+		var locationRoom = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 				.buildAndExpand(newRoom.getId()).toUri();
 		
 		return buildResponse(ResponseEntity.created(locationRoom).body(newRoom));

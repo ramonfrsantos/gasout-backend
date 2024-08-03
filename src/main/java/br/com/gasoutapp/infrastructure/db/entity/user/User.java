@@ -18,6 +18,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
@@ -28,11 +30,11 @@ import org.hibernate.envers.Audited;
 import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
 import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
 import br.com.gasoutapp.infrastructure.db.entity.room.Room;
-import lombok.Data;
 
 @DynamicUpdate
 @Entity
-@Data
+@Getter
+@Setter
 @Audited(withModifiedFlag = true)
 @AuditTable(value = "aud_t_user", catalog = "audit")
 @Table(name = "t_user")

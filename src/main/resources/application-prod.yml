@@ -1,8 +1,10 @@
-# Server
+logging:
+   level:
+      ROOT: INFO
+
 server:
    port: 8080
 
-# Variables
 user:
    admin:
       email: ${USER_ADMIN_EMAIL}
@@ -20,8 +22,9 @@ api:
       token:
          secret: ${JWT_SECRET}
 
-# Spring config
 spring:
+   application:
+      name: gas-out-api-prod
    main:
       allow-circular-references: true
    mail:
@@ -35,8 +38,6 @@ spring:
                auth: true
                starttls:
                   enable: true
-   application:
-      name: gas-out-api-prod
    datasource:
       url: ${SPRING_DATASOURCE_URL}
       username: ${SPRING_DATASOURCE_USERNAME}
@@ -47,7 +48,6 @@ spring:
       user: ${SPRING_DATASOURCE_USERNAME}
       password: ${SPRING_DATASOURCE_PASSWORD}
 
-# Swagger-ui Custom Path
 springdoc:
    swagger-ui:
       path: /swagger-ui.html

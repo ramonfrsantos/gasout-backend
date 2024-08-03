@@ -1,6 +1,5 @@
 package br.com.gasoutapp.infrastructure.config.security;
 
-
 import java.util.logging.Level;
 
 import javax.crypto.Cipher;
@@ -20,11 +19,11 @@ public class CriptexCustom {
 
     private static final String secret = "GasoutappCONFIG9"; // secret key length must be 16
 
-    private static SecretKey key;
+    private static final SecretKey key;
 
-    private static Cipher cipher;
+    private static final Cipher cipher;
 
-    private static Base64 coder;
+    private static final Base64 coder;
 
     static {
         try {
@@ -34,10 +33,6 @@ public class CriptexCustom {
         } catch (Throwable t) {
             throw new RuntimeException("Erro ao configurar classe CriptexCustom.", t);
         }
-    }
-
-    public static synchronized String encrypt(Long number) {
-        return encrypt(Long.toString(number));
     }
 
     public static synchronized String encrypt(String plainText) {

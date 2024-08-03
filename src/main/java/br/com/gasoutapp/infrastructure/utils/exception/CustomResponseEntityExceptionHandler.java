@@ -22,8 +22,6 @@ import br.com.gasoutapp.domain.exception.WrongPasswordException;
 @RestController
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-	// personalizar responses para as exceptions
-
 	@ExceptionHandler(Exception.class)
 	public final ResponseEntity<Object> handleAllExceptions(Exception e, WebRequest request) {
 		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), e.getMessage(),

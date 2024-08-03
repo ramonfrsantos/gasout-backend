@@ -3,14 +3,11 @@ package br.com.gasoutapp.application.controller.user;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import java.net.URI;
-import java.util.Optional;
-
 import javax.validation.Valid;
 
+import br.com.gasoutapp.application.dto.user.UserRegisterDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +25,6 @@ import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.user.UserService;
-import br.com.gasoutapp.infrastructure.db.entity.user.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,7 +51,7 @@ public class UserController extends BaseRestController {
 
 	@GetMapping("/verification-code/{email}")
 	@Operation(summary = "Buscar código de verificação por email", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO getVerificationCode(@PathVariable String email) throws Exception {
+	public BaseResponseDTO getVerificationCode(@PathVariable String email) {
 		return buildResponse(service.getVerificationCode(email));
 	}
 
@@ -68,15 +64,15 @@ public class UserController extends BaseRestController {
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar usuário por id", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO findUserById(@PathVariable String id) {
-		Optional<User> optUser = service.findUserById(id);
+		var optUser = service.findUserById(id);
 
-		if (!optUser.isPresent()) {
+		if (optUser.isEmpty()) {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
 
-		EntityModel<UserDTO> model = EntityModel.of(new UserDTO(optUser.get()));
+		var linkToUsers = linkTo(methodOn(this.getClass()).findAll());
+		var model = EntityModel.of(new UserDTO(optUser.get()));
 
-		WebMvcLinkBuilder linkToUsers = linkTo(methodOn(this.getClass()).findAll());
 		model.add(linkToUsers.withRel("all-users"));
 
 		return buildResponse(model);
@@ -84,10 +80,11 @@ public class UserController extends BaseRestController {
 
 	@PostMapping
 	@Operation(summary = "Registrar usuário no sistema", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO register(@Valid @RequestBody UserDTO dto) throws Exception {
-		UserDTO newUser = service.register(dto);
+	public BaseResponseDTO register(@Valid @RequestBody UserRegisterDTO registerDTO) {
+		var dto = new UserDTO(registerDTO.getName(), registerDTO.getEmail(), registerDTO.getPassword());
+		var newUser = service.register(dto);
 
-		URI locationUser = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+		var locationUser = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 				.buildAndExpand(newUser.getId()).toUri();
 
 		return buildResponse(ResponseEntity.created(locationUser).body(newUser));		
@@ -95,19 +92,19 @@ public class UserController extends BaseRestController {
 
 	@PutMapping("/refresh")
 	@Operation(summary = "Atualizar a senha", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO sendVerificationMail(@RequestBody LoginDTO dto) throws Exception {
+	public BaseResponseDTO sendVerificationMail(@RequestBody LoginDTO dto) {
 		return buildResponse(service.refreshPassword(dto));
 	}
 
 	@PutMapping("/send-verification-email/{email}")
 	@Operation(summary = "Enviar email com código de verificação", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO sendVerificationMail(@PathVariable String email) throws Exception {
+	public BaseResponseDTO sendVerificationMail(@PathVariable String email) {
 		return buildResponse(service.sendVerificationMail(email));
 	}
 
 	@DeleteMapping("/{email}")
 	@Operation(summary = "Excluir usuário por email", security = @SecurityRequirement(name = "gasoutapp"))
-	public BaseResponseDTO delete(@PathVariable String email) throws Exception {
+	public BaseResponseDTO delete(@PathVariable String email) {
 		return buildResponse(service.delete(email));
 	}
 
