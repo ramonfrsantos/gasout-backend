@@ -34,7 +34,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         optionalToken.ifPresent(token -> {
             token = token.replace("Bearer ", "");
             token = EncryptorCustom.decrypt(token);
-            Claims claims = Jwts.parser().setSigningKey(SIGNING_SECRET).parseClaimsJws(token).getBody();
+            Claims claims = Jwts.parser().setSigningKey(getSecretKey()).parseClaimsJws(token).getBody();
 
             @SuppressWarnings("unchecked")
             List<String> roles = claims.get("roles", List.class);
