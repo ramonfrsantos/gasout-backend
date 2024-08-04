@@ -101,7 +101,7 @@ class UserServiceImplTest {
 
     @Test
     void findUserByIdTest() {
-        String id = expectedUserId;
+        String id = "1";
 
         when(userRepository.findById(id)).thenReturn(Optional.of(expectedUser));
 
