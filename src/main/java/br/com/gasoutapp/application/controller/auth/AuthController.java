@@ -1,5 +1,6 @@
 package br.com.gasoutapp.application.controller.auth;
 
+import br.com.gasoutapp.infrastructure.config.security.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,9 @@ public class AuthController {
 	@Autowired
 	private AuthService service;
 
+	@Autowired
+	private TokenService tokenService;
+
     @GetMapping("/validate-admin")
 	public String checkIfAdminExists() {
 		return service.checkIfAdminExists();
@@ -29,7 +33,7 @@ public class AuthController {
 
 	@GetMapping("/find-by-token")
 	public UserJWT getUserByToken(@RequestParam String accessToken) {
-		return service.getUserByToken(accessToken);
+		return tokenService.getUserByToken(accessToken);
 	}
 
 	@PostMapping("/login")
@@ -39,7 +43,7 @@ public class AuthController {
 
 	@PostMapping("/refresh-token")
 	public LoginResultDTO login(@RequestParam String refreshToken) {
-		return service.refreshToken(refreshToken);
+		return tokenService.refreshToken(refreshToken);
 	}
 
 }

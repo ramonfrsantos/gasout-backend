@@ -83,4 +83,8 @@ public class TokenService {
 
 		return user.isPresent();
 	}
+
+	public UserJWT getUserByToken(String token) {
+		return this.getUserJWTFromToken(token);
+	}
 }

@@ -12,7 +12,6 @@ import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.config.security.EncryptorCustom;
 import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.TokenService;
-import br.com.gasoutapp.infrastructure.config.security.UserJWT;
 import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
 
 @Service
@@ -65,15 +64,5 @@ public class AuthServiceImpl implements AuthService {
 		}
 
 		return userService.getDtoByUser(user);
-	}
-
-	@Override
-	public UserJWT getUserByToken(String token) {
-		return tokenService.getUserJWTFromToken(token);
-	}
-
-	@Override
-	public LoginResultDTO refreshToken(String refreshToken) {
-		return tokenService.refreshToken(refreshToken);
 	}
 }
