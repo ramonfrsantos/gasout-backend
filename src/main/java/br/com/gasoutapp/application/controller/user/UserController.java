@@ -33,11 +33,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("users")
 @Tag(name = "Usuário", description = "Serviços relacionados ao usuário.")
 public class UserController extends BaseRestController {
-	
+
 	@Autowired
 	private UserService service;
 
-	@GetMapping("/revisions/{id}")
+    @GetMapping("/revisions/{id}")
 	@Operation(summary = "Buscar revisões do <i>envers</i>", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getRevisions(@PathVariable String id) {
 		return buildResponse(service.getRevisions(id));

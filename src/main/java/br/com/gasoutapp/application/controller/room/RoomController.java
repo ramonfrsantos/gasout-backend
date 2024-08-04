@@ -39,7 +39,7 @@ public class RoomController extends BaseRestController {
 	@Autowired
 	private RoomService service;
 
-	@GetMapping("/revisions/{id}")
+    @GetMapping("/revisions/{id}")
 	@Operation(summary = "Buscar revisões do <i>envers</i>", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getRevisions(@PathVariable String id) {
 		return buildResponse(service.getRevisions(id));

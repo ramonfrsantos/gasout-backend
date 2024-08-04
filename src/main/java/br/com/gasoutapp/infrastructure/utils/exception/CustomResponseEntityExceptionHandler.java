@@ -2,6 +2,7 @@ package br.com.gasoutapp.infrastructure.utils.exception;
 
 import java.util.Date;
 
+import br.com.gasoutapp.domain.exception.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,12 +12,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-
-import br.com.gasoutapp.domain.exception.AlreadyExistsException;
-import br.com.gasoutapp.domain.exception.NotFoundException;
-import br.com.gasoutapp.domain.exception.UnauthorizedException;
-import br.com.gasoutapp.domain.exception.UserAlreadyRegisteredException;
-import br.com.gasoutapp.domain.exception.WrongPasswordException;
 
 @ControllerAdvice
 @RestController
@@ -45,7 +40,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 		String detailsMessage = e.getMessage();
 
-		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro.", detailsMessage);
+		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro. Usuário não encontrado.", detailsMessage);
 
 		return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
 	}
@@ -56,7 +51,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 		String detailsMessage = e.getMessage();
 
-		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro.", detailsMessage);
+		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro. Usuário já registrado.", detailsMessage);
 
 		return new ResponseEntity<>(exceptionResponse, HttpStatus.FOUND);
 	}
@@ -67,7 +62,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 		String detailsMessage = e.getMessage();
 
-		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro.", detailsMessage);
+		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro. Cômodo já registrado.", detailsMessage);
 
 		return new ResponseEntity<>(exceptionResponse, HttpStatus.FOUND);
 	}
@@ -77,7 +72,17 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 		String detailsMessage = e.getMessage();
 
-		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro.", detailsMessage);
+		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro. Não autorizado.", detailsMessage);
+
+		return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
+	}
+
+	@ExceptionHandler(EncryptionException.class)
+	public final ResponseEntity<Object> handleEncryptionException(EncryptionException e, WebRequest request) {
+
+		String detailsMessage = e.getMessage();
+
+		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro. Não foi possível criptografar a senha. Verifique o método de criptografia.", detailsMessage);
 
 		return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
 	}

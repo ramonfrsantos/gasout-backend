@@ -5,11 +5,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 
+import lombok.experimental.UtilityClass;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
-import org.springframework.stereotype.Service;
 
-@Service
+@UtilityClass
 public class FluentServiceUtils {
 
 	public void post(String url, Map<String, String> headers, Object postData)
@@ -23,7 +23,7 @@ public class FluentServiceUtils {
 			}
 		}
 
-		String postDataString = JsonUtil.ObjectToJson(postData);
+		String postDataString = JsonUtil.objectToJson(postData);
 		postRequest.bodyString(postDataString, ContentType.APPLICATION_JSON).execute();
 	}
 

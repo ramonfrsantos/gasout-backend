@@ -6,9 +6,11 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@UtilityClass
 public class JsonUtil {
 
 	private static final ObjectMapper mapper;
@@ -17,7 +19,7 @@ public class JsonUtil {
 		mapper = new ObjectMapper();
 	}
 
-	public static String ObjectToJson(Object obj) {
+	public static String objectToJson(Object obj) {
 		try {
 			return mapper.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {

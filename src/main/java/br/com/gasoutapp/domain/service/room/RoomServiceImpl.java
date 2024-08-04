@@ -54,7 +54,7 @@ public class RoomServiceImpl implements RoomService {
 	private static final int GAS_VALUE_LIST_LIMIT_SIZE = 12;
 	private static final int SENSOR_MEASUREMENT_DELAY_IN_MINUTES = 0;
 
-	@Override
+    @Override
 	public List<RoomNameDTO> getAllRooms() {
 		return Arrays.stream(RoomNameEnum.values())
 				.map(room -> new RoomNameDTO(room.getNameId(), room.getNameDescription())).toList();

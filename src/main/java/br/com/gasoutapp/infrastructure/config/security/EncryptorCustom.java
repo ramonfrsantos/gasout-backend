@@ -1,38 +1,39 @@
 package br.com.gasoutapp.infrastructure.config.security;
 
-import java.util.logging.Level;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
+import br.com.gasoutapp.domain.exception.EncryptionException;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 
-import lombok.extern.java.Log;
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * @author Ramon Santos
  */
-@Log
-public class CriptexCustom {
-
-    private static final String secret = "GasoutappCONFIG9"; // secret key length must be 16
-
+@Slf4j
+@UtilityClass
+public class EncryptorCustom {
     private static final SecretKey key;
-
     private static final Cipher cipher;
-
     private static final Base64 coder;
+    private static final String SECRET;
 
     static {
+        SECRET = "GasoutappCONFIG9";
+
         try {
-            key = new SecretKeySpec(secret.getBytes(), "AES");
+            key = new SecretKeySpec(SECRET.getBytes(), "AES");
+
             cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            coder = new Base64();
-        } catch (Throwable t) {
-            throw new RuntimeException("Erro ao configurar classe CriptexCustom.", t);
+
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalArgumentException e) {
+            throw new EncryptionException(e.getMessage());
         }
+        coder = new Base64();
     }
 
     public static synchronized String encrypt(String plainText) {
@@ -41,16 +42,13 @@ public class CriptexCustom {
         }
 
         try {
-
             cipher.init(Cipher.ENCRYPT_MODE, key);
             byte[] cipherText = cipher.doFinal(plainText.getBytes());
             String s = new String(coder.encode(cipherText));
-            return s.replaceAll("\n", "")
-                    .replaceAll("\r", "");
-
-        } catch (Exception e) {
-            log.log(Level.SEVERE, e.getMessage(), e);
-            return "";
+            return s.replace("\n", "")
+                    .replace("\r", "");
+        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            throw new EncryptionException(e.getMessage());
         }
     }
 
@@ -60,16 +58,13 @@ public class CriptexCustom {
         }
 
         try {
-
             byte[] encypted = coder.decode(codedText.getBytes());
             cipher.init(Cipher.DECRYPT_MODE, key);
             byte[] decrypted = cipher.doFinal(encypted);
             return new String(decrypted);
-
-        } catch (Exception e) {
-            log.log(Level.SEVERE, e.getMessage(), e);
+        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            throw new EncryptionException(e.getMessage());
         }
-        return "";
     }
 
 }

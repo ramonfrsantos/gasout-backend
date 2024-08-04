@@ -9,7 +9,7 @@ import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.exception.WrongPasswordException;
 import br.com.gasoutapp.domain.service.user.UserService;
-import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
+import br.com.gasoutapp.infrastructure.config.security.EncryptorCustom;
 import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.TokenService;
 import br.com.gasoutapp.infrastructure.config.security.UserJWT;
@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
 	@Value("${user.admin.name}")
 	private String adminName;
 
-	@Override
+    @Override
 	public String checkIfAdminExists() {
 		var admins = userService.findAllByRoles(UserTypeEnum.ADMIN);
 
@@ -43,11 +43,7 @@ public class AuthServiceImpl implements AuthService {
 
 			var token = "";
 
-			try {
-				token = this.login(user.getLogin(), CriptexCustom.decrypt(user.getPassword())).getToken();
-			} catch (Exception e) {
-				log.error("Error = {}", e.getMessage());
-			}
+			token = this.login(user.getLogin(), EncryptorCustom.decrypt(user.getPassword())).getToken();
 
 			return token;
 		} else {
@@ -60,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
 		if (password.length() < 6) {
 			throw new WrongPasswordException("Senha incorreta.");
 		}
-		password = CriptexCustom.encrypt(password);
+		password = EncryptorCustom.encrypt(password);
 		var user = userService.findByLoginAndPassword(login, password);
 		var userLogin = userService.findByLogin(login);
 

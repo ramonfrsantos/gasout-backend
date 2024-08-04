@@ -4,7 +4,7 @@ import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.exception.UserAlreadyRegisteredException;
-import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
+import br.com.gasoutapp.infrastructure.config.security.EncryptorCustom;
 import br.com.gasoutapp.infrastructure.db.entity.user.User;
 import br.com.gasoutapp.infrastructure.db.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,14 +54,14 @@ class UserServiceImplTest {
         expectedUserDTO.setId(expectedUserId);
         expectedUserDTO.setName("User Test");
         expectedUserDTO.setEmail(expectedUserEmail);
-        expectedUserDTO.setPassword(CriptexCustom.encrypt("password"));
+        expectedUserDTO.setPassword(EncryptorCustom.encrypt("password"));
         expectedUserDTO.setVerificationCode(expectedVerificationCode);
 
         expectedUser = new User();
         expectedUser.setId(expectedUserId);
         expectedUser.setName("User Test");
         expectedUser.setEmail(expectedUserEmail);
-        expectedUser.setPassword(CriptexCustom.encrypt("password"));
+        expectedUser.setPassword(EncryptorCustom.encrypt("password"));
         expectedUser.setVerificationCode(expectedVerificationCode);
         expectedUser.setDeleted(false);
 
@@ -168,9 +168,4 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).findByEmail(expectedUserEmail);
         verify(userRepository, times(1)).save(any());
     }
-
-    @Test
-    void getRevisionsTest(){
-    }
-
 }

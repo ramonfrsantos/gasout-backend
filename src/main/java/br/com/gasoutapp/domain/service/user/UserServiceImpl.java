@@ -27,7 +27,7 @@ import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.exception.UserAlreadyRegisteredException;
-import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
+import br.com.gasoutapp.infrastructure.config.security.EncryptorCustom;
 import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.infrastructure.config.security.TokenService;
 import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
@@ -39,12 +39,6 @@ import br.com.gasoutapp.infrastructure.db.repository.UserRepository;
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
-
-	@Value("${spring.mail.username}")
-	private String companyEmail;
-
-	@Value("${user.admin.email}")
-	private String adminEmail;
 
 	@Autowired
 	private UserRepository repository;
@@ -58,7 +52,13 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private EntityManagerFactory factory;
 
-	@Transactional
+	@Value("${spring.mail.username}")
+	private String companyEmail;
+
+	@Value("${user.admin.email}")
+	private String adminEmail;
+
+    @Transactional
 	public UserDTO register(UserDTO userDTO) {
 		var newUser = create(userDTO);
 
@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
 		var newUser = findByEmail(dto.getLogin());
 
 		if (dto.getPassword() != null) {
-			newUser.setPassword(CriptexCustom.encrypt(dto.getPassword()));
+			newUser.setPassword(EncryptorCustom.encrypt(dto.getPassword()));
 			repository.save(newUser);
 		}
 
@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
 			dto.setUserName(normalizeString(user.getName()));
 		}
 
-		user.setTokenFirebase(CriptexCustom.encrypt(null));
+		user.setTokenFirebase(EncryptorCustom.encrypt(null));
 
 		repository.save(user);
 
@@ -245,7 +245,7 @@ public class UserServiceImpl implements UserService {
 		newUser.setLogin(userDTO.getEmail());
 		newUser.setLastUpdate(new Date());
 
-		var password = CriptexCustom.encrypt(userDTO.getPassword());
+		var password = EncryptorCustom.encrypt(userDTO.getPassword());
 		newUser.setPassword(password);
 
 		if (userDTO.getEmail().equals(adminEmail)) {

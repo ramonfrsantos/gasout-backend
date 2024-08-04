@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class FirebaseNotificationDTO {
-	private List<String> registration_ids;
+	private List<String> registrationIds;
 	private NotificationDTO notification;
 }

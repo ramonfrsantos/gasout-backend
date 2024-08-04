@@ -22,7 +22,7 @@ public class AuthController {
 	@Autowired
 	private AuthService service;
 
-	@GetMapping("/validate-admin")
+    @GetMapping("/validate-admin")
 	public String checkIfAdminExists() {
 		return service.checkIfAdminExists();
 	}
@@ -33,7 +33,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public LoginResultDTO login(@RequestBody LoginDTO dto) throws Exception {
+	public LoginResultDTO login(@RequestBody LoginDTO dto) {
 		return service.login(dto.getLogin(), dto.getPassword());
 	}
 

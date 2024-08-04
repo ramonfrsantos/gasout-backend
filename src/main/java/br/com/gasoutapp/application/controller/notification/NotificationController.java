@@ -4,6 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 import br.com.gasoutapp.application.dto.notification.NotificationGeneratorDTO;
@@ -33,11 +34,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("notifications")
 @Tag(name = "Notificações", description = "Serviços relacionados a parte de notificações do app.")
 public class NotificationController extends BaseRestController {
-	
+
 	@Autowired
 	private NotificationService service;
-	
-	@GetMapping("/revisions/{id}")
+
+    @GetMapping("/revisions/{id}")
 	@Operation(summary = "Buscar revisões do <i>envers</i>", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getRevisions(@PathVariable String id) {
 		return buildResponse(service.getRevisions(id));
@@ -78,9 +79,9 @@ public class NotificationController extends BaseRestController {
 		var dto = new NotificationDTO(generatorDTO.getMessage(), generatorDTO.getTitle(), generatorDTO.getUserEmail());
 		var newNotification = service.createNotification(dto);
 
-		var locationNotification = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newNotification.getId()).toUri();
-		
-		return buildResponse(ResponseEntity.created(locationNotification).body(newNotification));
+        URI locationNotification = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newNotification.getId()).toUri();
+
+        return buildResponse(ResponseEntity.created(locationNotification).body(newNotification));
 	}
 
 	@DeleteMapping("/{id}")

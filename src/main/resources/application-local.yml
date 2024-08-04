@@ -8,7 +8,7 @@ server:
 user:
    admin:
       email: contato.gasout@gmail.com
-      password: GasOut@2022!
+      password: ${USER_PASSWORD:GasOut@2022!}
       name: GasOut ADMIN
 
 spring:
@@ -20,7 +20,7 @@ spring:
       host: smtp.gmail.com
       port: 587
       username: contato.gasout@gmail.com
-      password: vjtvrwgangxbawwm
+      password: ${SPRING_MASTER_PASSWORD:vjtvrwgangxbawwm}
       properties:
          mail:
             smtp:

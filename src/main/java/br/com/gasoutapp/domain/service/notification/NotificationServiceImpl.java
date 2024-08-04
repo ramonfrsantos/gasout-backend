@@ -27,7 +27,7 @@ import br.com.gasoutapp.application.web.firebase.FirebaseService;
 import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.room.RoomService;
 import br.com.gasoutapp.domain.service.user.UserService;
-import br.com.gasoutapp.infrastructure.config.security.CriptexCustom;
+import br.com.gasoutapp.infrastructure.config.security.EncryptorCustom;
 import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
 import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
 import br.com.gasoutapp.infrastructure.db.entity.user.User;
@@ -54,7 +54,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Autowired
 	private FirebaseService firebaseService;
 
-	public List<NotificationDTO> getAllNotifications() {
+    public List<NotificationDTO> getAllNotifications() {
 		return parseToDTO(notificationRepository.findAll());
 	}
 
@@ -160,13 +160,13 @@ public class NotificationServiceImpl implements NotificationService {
 					
 					if(sensor.getSensorType() == SensorTypeEnum.GAS && room.isNotificationOn()) {
 						List<String> ids = new ArrayList<>();
-						ids.add(CriptexCustom.decrypt(user.getTokenFirebase()));
+						ids.add(EncryptorCustom.decrypt(user.getTokenFirebase()));
 						
 						var notificationDTO = createNotificationContentBasedOnGasValue(sensorValue, email);
 						
 						var firebaseNotificationDTO = new FirebaseNotificationDTO();
 						firebaseNotificationDTO.setNotification(notificationDTO);
-						firebaseNotificationDTO.setRegistration_ids(ids);
+						firebaseNotificationDTO.setRegistrationIds(ids);
 
 						try {
 							firebaseService.createFirebaseNotification(firebaseNotificationDTO);

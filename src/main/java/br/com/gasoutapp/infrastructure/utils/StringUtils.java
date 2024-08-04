@@ -1,11 +1,14 @@
 package br.com.gasoutapp.infrastructure.utils;
 
+import lombok.experimental.UtilityClass;
+
 import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@UtilityClass
 public class StringUtils {
 
 	public static String createRandomCode(int tamanhoCodigo, String caracteresUsados) {

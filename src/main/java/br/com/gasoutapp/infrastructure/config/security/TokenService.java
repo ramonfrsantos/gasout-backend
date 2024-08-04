@@ -28,7 +28,7 @@ public class TokenService {
 	@Autowired
 	private UserRepository repository;
 
-	public LoginResultDTO createTokenForUser(User user) {
+    public LoginResultDTO createTokenForUser(User user) {
 
 		var dto = new LoginResultDTO();
 		dto.setUserId(user.getId());
@@ -42,12 +42,12 @@ public class TokenService {
 
 		var token = Jwts.builder().claim("id", user.getId()).claim("roles", user.getRoles())
 				.setSubject(user.getLogin()).setExpiration(calendar.getTime())
-				.signWith(SignatureAlgorithm.HS512, SecurityFilter.SECRET).compact();
-		dto.setToken(CriptexCustom.encrypt(token));
+				.signWith(SignatureAlgorithm.HS512, SecurityFilter.getSecretKey()).compact();
+		dto.setToken(EncryptorCustom.encrypt(token));
 
 		var refreshToken = Jwts.builder().claim("id", user.getId()).setSubject(user.getLogin())
-				.signWith(SignatureAlgorithm.HS512, SecurityFilter.SECRET).compact();
-		dto.setRefreshToken(CriptexCustom.encrypt(refreshToken));
+				.signWith(SignatureAlgorithm.HS512, SecurityFilter.getSecretKey()).compact();
+		dto.setRefreshToken(EncryptorCustom.encrypt(refreshToken));
 
 		dto.setTokenExpiresIn(calendar.getTime());
 		dto.setTokenType("Bearer");
@@ -57,8 +57,8 @@ public class TokenService {
 
 	public LoginResultDTO refreshToken(String refreshToken) {
 		refreshToken = refreshToken.replace("Bearer ", "");
-		refreshToken = CriptexCustom.decrypt(refreshToken);
-		var claim = Jwts.parser().setSigningKey(SecurityFilter.SECRET).parseClaimsJws(refreshToken).getBody();
+		refreshToken = EncryptorCustom.decrypt(refreshToken);
+		var claim = Jwts.parser().setSigningKey(SecurityFilter.getSecretKey()).parseClaimsJws(refreshToken).getBody();
 		var usuario = repository.findById(claim.get("id", String.class));
 
 		if (usuario.isPresent()) {
@@ -70,9 +70,9 @@ public class TokenService {
 
 	public UserJWT getUserJWTFromToken(String token) {
 		token = token.replace("Bearer ", "");
-		token = CriptexCustom.decrypt(token);
+		token = EncryptorCustom.decrypt(token);
 
-		var claim = Jwts.parser().setSigningKey(SecurityFilter.SECRET).parseClaimsJws(token).getBody();
+		var claim = Jwts.parser().setSigningKey(SecurityFilter.getSecretKey()).parseClaimsJws(token).getBody();
 		var expiresIn = differenceInSeconds(new Date(), claim.getExpiration());
 
 		return new UserJWT(claim.get("id", String.class), claim.getSubject(), expiresIn, isValidToken(claim));

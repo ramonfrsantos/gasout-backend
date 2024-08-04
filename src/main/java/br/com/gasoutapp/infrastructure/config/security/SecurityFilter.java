@@ -23,8 +23,8 @@ import io.jsonwebtoken.Jwts;
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
 
-    public static final String SECRET = "gasoutapp";
     private static final String HEADER_STRING = "Authorization";
+    private static final String SIGNING_SECRET = "gasoutapp"; // secret key length must be 16
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -33,8 +33,8 @@ public class SecurityFilter extends OncePerRequestFilter {
         var optionalToken = getToken(request);
         optionalToken.ifPresent(token -> {
             token = token.replace("Bearer ", "");
-            token = CriptexCustom.decrypt(token);
-            Claims claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody();
+            token = EncryptorCustom.decrypt(token);
+            Claims claims = Jwts.parser().setSigningKey(SIGNING_SECRET).parseClaimsJws(token).getBody();
 
             @SuppressWarnings("unchecked")
             List<String> roles = claims.get("roles", List.class);
@@ -53,6 +53,10 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     protected Optional<String> getToken(HttpServletRequest request) {
         return Optional.ofNullable(request.getHeader(HEADER_STRING));
+    }
+
+    public static String getSecretKey(){
+        return SIGNING_SECRET;
     }
 
 }
