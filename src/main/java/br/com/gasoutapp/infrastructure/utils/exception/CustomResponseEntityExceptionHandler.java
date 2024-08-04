@@ -82,7 +82,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 		String detailsMessage = e.getMessage();
 
-		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro. Não foi possível criptografar a senha. Verifique o método de criptografia.", detailsMessage);
+		ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Erro. Verifique o método de criptografia.", detailsMessage);
 
 		return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
 	}

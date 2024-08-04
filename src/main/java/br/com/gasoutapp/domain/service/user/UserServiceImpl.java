@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
 			dto.setUserName(normalizeString(user.getName()));
 		}
 
-		user.setTokenFirebase(EncryptorCustom.encrypt(null));
+		user.setTokenFirebase(EncryptorCustom.encrypt(""));
 
 		repository.save(user);
 

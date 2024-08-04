@@ -53,24 +53,18 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public LoginResultDTO login(String login, String password) {
-		if (password.length() < 6) {
-			throw new WrongPasswordException("Senha incorreta.");
-		}
-		password = EncryptorCustom.encrypt(password);
-		var user = userService.findByLoginAndPassword(login, password);
-		var userLogin = userService.findByLogin(login);
+		var user = userService.findByLogin(login);
 
 		if (user == null) {
-			if (userLogin == null) {
-				throw new NotFoundException("Dados de login incorretos.");
-			} else if (!userLogin.getPassword().equals(password)) {
-				throw new WrongPasswordException("Senha incorreta.");
-			} else {
-				throw new NotFoundException("Usuario nao encontrado.");
-			}
-		} else {
-			return userService.getDtoByUser(user);
+			throw new NotFoundException("Dados de login incorretos.");
 		}
+		var pass = EncryptorCustom.decrypt(user.getPassword());
+
+		if(!password.equals(pass) || password.length() < 6){
+			throw new WrongPasswordException("Senha incorreta.");
+		}
+
+		return userService.getDtoByUser(user);
 	}
 
 	@Override

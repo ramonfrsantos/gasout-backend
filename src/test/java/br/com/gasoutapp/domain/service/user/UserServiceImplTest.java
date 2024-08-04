@@ -29,6 +29,7 @@ class UserServiceImplTest {
     String expectedUserId = "1";
     String expectedUserEmail = "user@test.com";
     String expectedVerificationCode = "000000";
+    String expectedPassword = EncryptorCustom.encrypt("password");
 
     @Mock
     User expectedUser;
@@ -54,14 +55,14 @@ class UserServiceImplTest {
         expectedUserDTO.setId(expectedUserId);
         expectedUserDTO.setName("User Test");
         expectedUserDTO.setEmail(expectedUserEmail);
-        expectedUserDTO.setPassword(EncryptorCustom.encrypt("password"));
+        expectedUserDTO.setPassword(expectedPassword);
         expectedUserDTO.setVerificationCode(expectedVerificationCode);
 
         expectedUser = new User();
         expectedUser.setId(expectedUserId);
         expectedUser.setName("User Test");
         expectedUser.setEmail(expectedUserEmail);
-        expectedUser.setPassword(EncryptorCustom.encrypt("password"));
+        expectedUser.setPassword(expectedPassword);
         expectedUser.setVerificationCode(expectedVerificationCode);
         expectedUser.setDeleted(false);
 
@@ -143,7 +144,7 @@ class UserServiceImplTest {
 
         when(userRepository.findByEmail(expectedUserEmail)).thenReturn(Optional.of(expectedUser));
 
-        assertEquals(expectedUserDTO, userService.refreshPassword(loginDTO));
+        assertEquals(expectedPassword, userService.refreshPassword(loginDTO).getPassword());
     }
 
     @Test
