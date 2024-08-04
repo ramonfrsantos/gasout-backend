@@ -2,6 +2,7 @@ package br.com.gasoutapp.domain.service.room;
 
 import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.RoomNameDTO;
+import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
 import br.com.gasoutapp.application.dto.room.SensorMinDetailsDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.service.user.UserService;
@@ -25,8 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,7 +59,7 @@ class RoomServiceImplTest {
     @InjectMocks
     RoomServiceImpl roomService;
 
-    // getRevisions    updateSwitches sendRoomSensorValue deleteRoom deleteAllByUser
+    // getRevisions sendRoomSensorValue deleteRoom deleteAllByUser
 
     @BeforeEach
     void setUp() {
@@ -153,6 +153,33 @@ class RoomServiceImplTest {
 
         verify(userService, times(1)).findByLogin(any());
         verify(roomRepository, times(1)).findAllByUserEmail(any());
+        verify(roomRepository, times(1)).save(any());
+        verify(sensorRepository, times(2)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+    }
+
+    @Test
+    void updateSwitchesTest(){
+        RoomSwitchesDTO switches = new RoomSwitchesDTO();
+        switches.setAlarmOn(true);
+        switches.setSprinklersOn(false);
+        switches.setNotificationOn(true);
+        switches.setUserEmail(expectedUserEmail);
+        switches.setNameId(RoomNameEnum.COZINHA.getNameId());
+
+        when(userService.findByLogin(any())).thenReturn(expectedUser);
+        when(roomRepository.findByUserEmailAndName(any(), any())).thenReturn(Optional.of(expectedRoom));
+        when(roomRepository.save(any())).thenReturn(expectedRoom);
+        when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(List.of(expectedSensor));
+
+        var result = roomService.updateSwitches(switches);
+
+        assertNotNull(result);
+        assertTrue(result.getAlarmOn());
+        assertFalse(result.getSprinklersOn());
+        assertTrue(result.getNotificationOn());
+
+        verify(userService, times(1)).findByLogin(any());
+        verify(roomRepository, times(1)).findByUserEmailAndName(any(), any());
         verify(roomRepository, times(1)).save(any());
         verify(sensorRepository, times(2)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
     }
