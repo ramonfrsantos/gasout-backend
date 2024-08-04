@@ -23,7 +23,7 @@ public class TokenService {
 	private static final int DAY_COUNT = 30;
 	private static final int HOUR_COUNT = 24;
 
-	private static final  int HORAS_TIMEOUT = YEAR_COUNT * MONTH_COUNT * DAY_COUNT * HOUR_COUNT;
+	private static final  int HOURS_TIMEOUT = YEAR_COUNT * MONTH_COUNT * DAY_COUNT * HOUR_COUNT;
 
 	@Autowired
 	private UserRepository repository;
@@ -38,7 +38,7 @@ public class TokenService {
 		var calendar = Calendar.getInstance();
 		calendar.setTime(new Date());
 
-		calendar.add(Calendar.HOUR, HORAS_TIMEOUT);
+		calendar.add(Calendar.HOUR, HOURS_TIMEOUT);
 
 		var token = Jwts.builder().claim("id", user.getId()).claim("roles", user.getRoles())
 				.setSubject(user.getLogin()).setExpiration(calendar.getTime())

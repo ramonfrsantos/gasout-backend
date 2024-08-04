@@ -27,13 +27,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
-    private static final int YEAR_COUNT = 1;
-    private static final int MONTH_COUNT = 4;
-    private static final int DAY_COUNT = 30;
-    private static final int HOUR_COUNT = 24;
-
-    private static final  int HORAS_TIMEOUT = YEAR_COUNT * MONTH_COUNT * DAY_COUNT * HOUR_COUNT;
-
     String expectedUserId = "1";
     String expectedUserEmail = "user@test.com";
     String expectedVerificationCode = "000000";
@@ -116,10 +109,17 @@ class AuthServiceImplTest {
     }
 
     static String createNewToken(User user){
+        int yearCount = 1;
+        int monthCount = 4;
+        int dayCount = 30;
+        int hourCount = 24;
+
+        int hoursTimeout = yearCount * monthCount * dayCount * hourCount;
+
         var calendar = Calendar.getInstance();
         calendar.setTime(new Date());
 
-        calendar.add(Calendar.HOUR, HORAS_TIMEOUT);
+        calendar.add(Calendar.HOUR, hoursTimeout);
 
         return Jwts.builder().claim("id", user.getId()).claim("roles", user.getRoles())
                 .setSubject(user.getLogin()).setExpiration(calendar.getTime())
