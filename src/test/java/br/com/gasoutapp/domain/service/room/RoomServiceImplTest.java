@@ -154,13 +154,17 @@ class RoomServiceImplTest {
         verify(sensorRepository, never()).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
     }
 
+    private void invokeGetAllUserRoomsThrowsNotFoundException() {
+        roomService.getAllUserRooms(expectedUserEmail, RoomNameEnum.COZINHA.getNameId());
+    }
+
     @Test
     void getAllUserRoomsFindByRoomInexistentTest(){
-        List<RoomDTO> expectedRoomList = new ArrayList<>();
-
         when(userService.findByEmail(any())).thenReturn(expectedUser);
+        when(roomRepository.findAllByUserEmail(any())).thenReturn(List.of(expectedRoom));
+        when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(List.of(expectedSensor));
 
-        assertEquals(expectedRoomList, roomService.getAllUserRooms(expectedUserEmail, 0));
+        assertEquals(List.of(expectedRoomDTO), roomService.getAllUserRooms(expectedUserEmail, 0));
 
         verify(roomRepository, times(1)).findAllByUserEmail(any());
         verify(userService, times(1)).findByEmail(any());
@@ -192,6 +196,10 @@ class RoomServiceImplTest {
         verify(roomRepository, never()).save(any());
     }
 
+    private void invokeCreateRoomThrowsNotFoundException() {
+        roomService.createRoom(RoomNameEnum.COZINHA, "invalid@test.com");
+    }
+
     @Test
     void createRoomThrowsAlreadyExistsException(){
         when(userService.findByEmail(any())).thenReturn(expectedUser);
@@ -203,6 +211,10 @@ class RoomServiceImplTest {
         verify(userService, times(1)).findByEmail(any());
         verify(roomRepository, times(1)).findAllByUserEmail(any());
         verify(roomRepository, never()).save(any());
+    }
+
+    private void invokeCreateRoomThrowsAlreadyExistsException() {
+        roomService.createRoom(RoomNameEnum.COZINHA, expectedUserEmail);
     }
 
     @Test
@@ -246,6 +258,16 @@ class RoomServiceImplTest {
         verify(sensorRepository, never()).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
     }
 
+    private void invokeUpdateSwitchesThrowsNotFoundException() {
+        RoomSwitchesDTO switches = new RoomSwitchesDTO();
+        switches.setAlarmOn(true);
+        switches.setSprinklersOn(false);
+        switches.setNotificationOn(true);
+        switches.setUserEmail(expectedUserEmail);
+        switches.setNameId(RoomNameEnum.COZINHA.getNameId());
+
+        roomService.updateSwitches(switches);
+    }
 
     @ParameterizedTest
     @CsvSource({"0", "25", "50", "90"})
@@ -372,6 +394,10 @@ class RoomServiceImplTest {
         assertEquals("Nao foi encontrado nenhum comodo com esse id.", ex.getMessage());
     }
 
+    private void invokeGetRoomNameByIdThrowsNotFoundException() {
+        roomService.getRoomNameById(0);
+    }
+
     @Test
     void deleteAllByUserTest(){
         when(userService.findByEmail(any())).thenReturn(expectedUser);
@@ -404,30 +430,4 @@ class RoomServiceImplTest {
         );
     }
 
-    private void invokeGetAllUserRoomsThrowsNotFoundException() {
-        roomService.getAllUserRooms(expectedUserEmail, RoomNameEnum.COZINHA.getNameId());
-    }
-
-    private void invokeCreateRoomThrowsAlreadyExistsException() {
-        roomService.createRoom(RoomNameEnum.COZINHA, expectedUserEmail);
-    }
-
-    private void invokeCreateRoomThrowsNotFoundException() {
-        roomService.createRoom(RoomNameEnum.COZINHA, "invalid@test.com");
-    }
-
-    private void invokeGetRoomNameByIdThrowsNotFoundException() {
-        roomService.getRoomNameById(0);
-    }
-
-    private void invokeUpdateSwitchesThrowsNotFoundException() {
-        RoomSwitchesDTO switches = new RoomSwitchesDTO();
-        switches.setAlarmOn(true);
-        switches.setSprinklersOn(false);
-        switches.setNotificationOn(true);
-        switches.setUserEmail(expectedUserEmail);
-        switches.setNameId(RoomNameEnum.COZINHA.getNameId());
-
-        roomService.updateSwitches(switches);
-    }
 }

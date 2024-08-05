@@ -34,6 +34,7 @@ class UserServiceImplTest {
 
     String adminEmail = "admintest@mail.com";
     String expectedUserId = "1";
+    String expectedUserName = "User Test";
     String expectedUserEmail = "user@test.com";
     String expectedVerificationCode = "000000";
     String expectedPassword = EncryptorCustom.encrypt("password");
@@ -59,14 +60,14 @@ class UserServiceImplTest {
     void setUp() {
         expectedUserDTO = new UserDTO();
         expectedUserDTO.setId(expectedUserId);
-        expectedUserDTO.setName("User Test");
+        expectedUserDTO.setName(expectedUserName);
         expectedUserDTO.setEmail(expectedUserEmail);
         expectedUserDTO.setPassword(expectedPassword);
         expectedUserDTO.setVerificationCode(expectedVerificationCode);
 
         expectedUser = new User();
         expectedUser.setId(expectedUserId);
-        expectedUser.setName("User Test");
+        expectedUser.setName(expectedUserName);
         expectedUser.setEmail(expectedUserEmail);
         expectedUser.setPassword(expectedPassword);
         expectedUser.setVerificationCode(expectedVerificationCode);
@@ -181,6 +182,11 @@ class UserServiceImplTest {
         verify(userRepository, never()).save(any());
     }
 
+    private void invokeRegisterThrowsUserAlreadyExistsException() {
+        var newUserDTO = new UserDTO("User Test", expectedUserEmail, "password");
+        userService.register(newUserDTO);
+    }
+
     @Test
     void refreshPasswordTest() {
         var loginDTO = new LoginDTO();
@@ -225,6 +231,10 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).findByEmail(any());
     }
 
+    private void invokeFindByEmailThrowsNotFoundException() {
+        userService.findByEmail("invalid@test.com");
+    }
+
     @Test
     void setUserRoomsTest() {
         var newUser = new User();
@@ -247,12 +257,4 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).save(any());
     }
 
-    private void invokeRegisterThrowsUserAlreadyExistsException() {
-        var newUserDTO = new UserDTO("User Test", expectedUserEmail, "password");
-        userService.register(newUserDTO);
-    }
-
-    private void invokeFindByEmailThrowsNotFoundException() {
-        userService.findByEmail("invalid@test.com");
-    }
 }

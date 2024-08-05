@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
+import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -218,35 +220,39 @@ public class NotificationServiceImpl implements NotificationService {
 		
 		return notificationDTO;
 	}
-
-	public List<RevisionDTO> getRevisions(String id) {
-		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
-
-		var auditQuery = auditReader.createQuery().forRevisionsOfEntityWithChanges(Notification.class, true)
-				.add(AuditEntity.id().eq(id));
-
-		List<RevisionDTO> details = new ArrayList<>();
-
-		for (Object revision : auditQuery.getResultList()) {
-			RevisionDTO r = new RevisionDTO();
-
-			Object[] objArray = convertToObjectArray(revision);
-
-			r.setEntity(objArray[0]);
-			r.setRevisionDetails(objArray[1]);
-			r.setRevisionType(objArray[2]);
-			r.setUpdatedAttributes(objArray[3]);
-			details.add(r);
-		}
-
-		return details;
-	}
-
 	public List<NotificationDTO> parseToDTO(List<Notification> list) {
 		return list.stream().map(this::parseToDTO).toList();
 	}
 
 	public NotificationDTO parseToDTO(Notification notification) {
 		return new NotificationDTO(notification);
+	}
+
+	@Override
+	public List<RevisionDTO> getRevisions(String id) {
+		var auditQuery = getAuditQuery(id);
+
+		List<RevisionDTO> details = new ArrayList<>();
+
+		for (Object revision : auditQuery.getResultList()) {
+			var r = new RevisionDTO();
+
+			var objArray = convertToObjectArray(revision);
+			r.setEntity(objArray[0]);
+			r.setRevisionDetails(objArray[1]);
+			r.setRevisionType(objArray[2]);
+			r.setUpdatedAttributes(objArray[3]);
+
+			details.add(r);
+		}
+
+		return details;
+	}
+
+	private AuditQuery getAuditQuery(String id) {
+		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
+
+		return auditReader.createQuery().forRevisionsOfEntityWithChanges(Notification.class, true)
+				.add(AuditEntity.id().eq(id));
 	}
 }

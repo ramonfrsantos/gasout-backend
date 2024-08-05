@@ -29,6 +29,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
     String expectedUserId = "1";
+    String expectedUserName = "User Test";
     String expectedUserEmail = "user@test.com";
     String expectedVerificationCode = "000000";
     String expectedPassword = EncryptorCustom.encrypt("password");
@@ -46,7 +47,7 @@ class AuthServiceImplTest {
     void setUp() {
         expectedUser = new User();
         expectedUser.setId(expectedUserId);
-        expectedUser.setName("User Test");
+        expectedUser.setName(expectedUserName);
         expectedUser.setEmail(expectedUserEmail);
         expectedUser.setLogin(expectedUserEmail);
         expectedUser.setPassword(expectedPassword);
@@ -91,6 +92,10 @@ class AuthServiceImplTest {
         verify(userService, times(1)).findByEmail(any());
     }
 
+    private void invokeCheckIfAdminExistsThrowsUserNotFoundException() {
+        authServiceImpl.checkIfAdminExists();
+    }
+
     @Test
     void checkIfAdminExistsThrowsWrongPasswordException() {
         var invalidUser = new User();
@@ -106,6 +111,10 @@ class AuthServiceImplTest {
         verify(userService, times(1)).findAllByRoles(any());
         verify(userService, times(1)).create(any());
         verify(userService, times(1)).findByEmail(any());
+    }
+
+    private void invokeCheckIfAdminExistsThrowsWrongPasswordException() {
+        authServiceImpl.checkIfAdminExists();
     }
 
     @Test
@@ -138,11 +147,4 @@ class AuthServiceImplTest {
                 .signWith(SignatureAlgorithm.HS512, SecurityFilter.getSecretKey()).compact();
     }
 
-    private void invokeCheckIfAdminExistsThrowsUserNotFoundException() {
-        authServiceImpl.checkIfAdminExists();
-    }
-
-    private void invokeCheckIfAdminExistsThrowsWrongPasswordException() {
-        authServiceImpl.checkIfAdminExists();
-    }
 }
