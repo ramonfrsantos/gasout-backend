@@ -37,11 +37,7 @@ class UserServiceImplTest {
     String expectedUserEmail = "user@test.com";
     String expectedVerificationCode = "000000";
     String expectedPassword = EncryptorCustom.encrypt("password");
-
-    @Mock
     User expectedUser;
-
-    @Mock
     UserDTO expectedUserDTO;
 
     @Mock

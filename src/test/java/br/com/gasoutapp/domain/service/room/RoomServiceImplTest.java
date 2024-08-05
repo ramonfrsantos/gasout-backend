@@ -35,18 +35,10 @@ class RoomServiceImplTest {
     Date expectedSensorDate;
     String expectedRoomId = "1";
     String expectedUserEmail = "user@test.com";
-
-    @Mock
-    Room expectedRoom;
-
-    @Mock
-    RoomDTO expectedRoomDTO;
-
-    @Mock
     Sensor expectedSensor;
-
-    @Mock
     User expectedUser;
+    Room expectedRoom;
+    RoomDTO expectedRoomDTO;
 
     @Mock
     RoomRepository roomRepository;

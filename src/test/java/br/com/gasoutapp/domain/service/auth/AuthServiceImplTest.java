@@ -33,11 +33,7 @@ class AuthServiceImplTest {
     String expectedVerificationCode = "000000";
     String expectedPassword = EncryptorCustom.encrypt("password");
     String invalidPassword = EncryptorCustom.encrypt("invalid");
-
-    @Mock
     User expectedUser;
-
-    @Mock
     LoginResultDTO loginResultDTO;
 
     @Mock
