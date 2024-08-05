@@ -36,10 +36,6 @@ public interface UserService {
 
 	LoginResultDTO getDtoByUser(User user);
 
-	User findByLogin(String login);
-
-	User findByLoginAndPassword(String login, String password);
-
 	User findByEmail(String email);
 
 	void setUserRooms(List<Room> newUserRooms, User user);

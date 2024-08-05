@@ -1,9 +1,6 @@
 package br.com.gasoutapp.domain.service.room;
 
-import br.com.gasoutapp.application.dto.room.RoomDTO;
-import br.com.gasoutapp.application.dto.room.RoomNameDTO;
-import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
-import br.com.gasoutapp.application.dto.room.SensorMinDetailsDTO;
+import br.com.gasoutapp.application.dto.room.*;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
@@ -21,10 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,6 +26,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class RoomServiceImplTest {
 
+    Date expectedSensorDate;
     String expectedRoomId = "1";
     String expectedUserEmail = "user@test.com";
 
@@ -59,10 +54,12 @@ class RoomServiceImplTest {
     @InjectMocks
     RoomServiceImpl roomService;
 
-    // getRevisions sendRoomSensorValue deleteRoom deleteAllByUser
-
     @BeforeEach
     void setUp() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(2024, Calendar.FEBRUARY, 25);
+        expectedSensorDate = calendar.getTime();
+
         expectedRoom = new Room();
         expectedRoom.setId(expectedRoomId);
         expectedRoom.setName(RoomNameEnum.COZINHA);
@@ -85,7 +82,7 @@ class RoomServiceImplTest {
         expectedSensor.setId("1");
         expectedSensor.setSensorType(SensorTypeEnum.GAS);
         expectedSensor.setSensorValue(0L);
-        expectedSensor.setTimestamp(new Date());
+        expectedSensor.setTimestamp(expectedSensorDate);
 
         var expectedRoomNameDTO = new RoomNameDTO();
         expectedRoomNameDTO.setNameId(7);
@@ -103,7 +100,7 @@ class RoomServiceImplTest {
 
         var sensorDetails = new SensorMinDetailsDTO();
         sensorDetails.setSensorValue(0L);
-        sensorDetails.setTimestamp(expectedSensor.getTimestamp().toInstant().atZone(ZoneId.of("America/Sao_Paulo")));
+        sensorDetails.setTimestamp(expectedSensor.getTimestamp().toInstant().atZone(ZoneId.of("America/Sao_Paulo")).withNano(0));
         expectedRoomDTO.setRecentGasSensorValues(List.of(sensorDetails));
 
         expectedSensor.setRoom(expectedRoom);
@@ -133,7 +130,7 @@ class RoomServiceImplTest {
     void getAllUserRoomsTest(){
         List<RoomDTO> expectedRoomList = List.of(expectedRoomDTO);
 
-        when(userService.findByLogin(any())).thenReturn(expectedUser);
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
         when(roomRepository.findByUserEmailAndName(any(), any())).thenReturn(Optional.of(expectedRoom));
         when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(List.of(expectedSensor));
 
@@ -144,14 +141,14 @@ class RoomServiceImplTest {
 
     @Test
     void createRoomTest(){
-        when(userService.findByLogin(any())).thenReturn(expectedUser);
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
         when(roomRepository.findAllByUserEmail(any())).thenReturn(new ArrayList<>());
         when(roomRepository.save(any())).thenReturn(expectedRoom);
         when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(List.of(expectedSensor));
 
         assertEquals(expectedRoomDTO, roomService.createRoom(RoomNameEnum.COZINHA, expectedUserEmail));
 
-        verify(userService, times(1)).findByLogin(any());
+        verify(userService, times(1)).findByEmail(any());
         verify(roomRepository, times(1)).findAllByUserEmail(any());
         verify(roomRepository, times(1)).save(any());
         verify(sensorRepository, times(2)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
@@ -166,7 +163,7 @@ class RoomServiceImplTest {
         switches.setUserEmail(expectedUserEmail);
         switches.setNameId(RoomNameEnum.COZINHA.getNameId());
 
-        when(userService.findByLogin(any())).thenReturn(expectedUser);
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
         when(roomRepository.findByUserEmailAndName(any(), any())).thenReturn(Optional.of(expectedRoom));
         when(roomRepository.save(any())).thenReturn(expectedRoom);
         when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(List.of(expectedSensor));
@@ -178,9 +175,65 @@ class RoomServiceImplTest {
         assertFalse(result.getSprinklersOn());
         assertTrue(result.getNotificationOn());
 
-        verify(userService, times(1)).findByLogin(any());
+        verify(userService, times(1)).findByEmail(any());
         verify(roomRepository, times(1)).findByUserEmailAndName(any(), any());
         verify(roomRepository, times(1)).save(any());
         verify(sensorRepository, times(2)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+    }
+
+
+    @Test
+    void sendRoomSensorValueTest(){
+        var sensor = new SensorDTO();
+        sensor.setSensorValue(0L);
+        sensor.setSensorType(SensorTypeEnum.GAS);
+        sensor.setRoomNameId(RoomNameEnum.COZINHA.getNameId());
+        sensor.setTimestamp(new Date());
+        sensor.setUserEmail(expectedUserEmail);
+
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
+        when(roomRepository.findAllByUserEmail(any())).thenReturn(List.of(expectedRoom));
+        when(roomRepository.save(any())).thenReturn(expectedRoom);
+        when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(List.of(expectedSensor));
+        when(sensorRepository.save(any())).thenReturn(expectedSensor);
+
+        var timestamp = new Date().toInstant().atZone(ZoneId.of("America/Sao_Paulo")).withNano(0);
+
+        RoomDTO updatedRoom = expectedRoomDTO;
+        updatedRoom.getRecentGasSensorValues().get(0).setTimestamp(timestamp);
+
+        assertEquals(updatedRoom, roomService.sendRoomSensorValue(sensor));
+
+        verify(userService, times(1)).findByEmail(any());
+        verify(roomRepository, times(1)).findAllByUserEmail(any());
+        verify(roomRepository, times(1)).save(any());
+        verify(sensorRepository, times(3)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+        verify(sensorRepository, times(1)).save(any());
+    }
+
+    @Test
+    void deleteRoomTest(){
+        when(roomRepository.findById(any())).thenReturn(Optional.of(expectedRoom));
+
+        assertEquals("Registro excluido com sucesso.", roomService.deleteRoom(expectedRoomId));
+        assertTrue(expectedRoom.isDeleted());
+
+        verify(roomRepository, times(1)).findById(any());
+        verify(roomRepository, times(1)).save(any());
+    }
+
+    @Test
+    void deleteAllByUserTest(){
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
+        when(roomRepository.findAllByUserEmail(any())).thenReturn(List.of(expectedRoom));
+        when(sensorRepository.findAllByRoom(any())).thenReturn(List.of(expectedSensor));
+
+        roomService.deleteAllByUser(expectedUserEmail);
+
+        assertNull(expectedUser.getRooms());
+
+        verify(userService, times(1)).findByEmail(any());
+        verify(roomRepository, times(1)).delete(any());
+        verify(sensorRepository, times(1)).delete(any());
     }
 }

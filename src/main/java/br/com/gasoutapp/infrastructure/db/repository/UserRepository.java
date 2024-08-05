@@ -11,9 +11,6 @@ import br.com.gasoutapp.infrastructure.db.entity.user.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
-
-	Optional<User> findByLoginAndPassword(String login, String password);
-
 	Optional<User> findByEmail(String login);
 
 	List<User> findAllByRoles(UserTypeEnum role);

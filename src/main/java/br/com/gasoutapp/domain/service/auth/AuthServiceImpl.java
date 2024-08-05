@@ -24,14 +24,17 @@ public class AuthServiceImpl implements AuthService {
 	@Autowired
 	private TokenService tokenService;
 
-	@Value("${user.admin.email}")
-	private String adminEmail;
+	private final String adminEmail;
 
-	@Value("${user.admin.password}")
-	private String adminPassword;
+	private final String adminPassword;
 
-	@Value("${user.admin.name}")
-	private String adminName;
+	private final String adminName;
+
+    public AuthServiceImpl(@Value("${user.admin.email}") String adminEmail, @Value("${user.admin.password}") String adminPassword, @Value("${user.admin.name}") String adminName) {
+        this.adminEmail = adminEmail;
+        this.adminPassword = adminPassword;
+        this.adminName = adminName;
+    }
 
     @Override
 	public String checkIfAdminExists() {
@@ -52,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public LoginResultDTO login(String login, String password) {
-		var user = userService.findByLogin(login);
+		var user = userService.findByEmail(login);
 
 		if (user == null) {
 			throw new NotFoundException("Dados de login incorretos.");

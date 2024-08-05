@@ -59,7 +59,7 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	public List<NotificationDTO> getAllRecentNotifications(String login) {
-		var user = userService.findByLogin(login);
+		var user = userService.findByEmail(login);
 		var notifications = notificationRepository.findAllByUserEmailOrderByDateAsc(user.getEmail());
 
 		reverseList(notifications);
@@ -72,7 +72,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 		User newUser;
 
-		var user = userService.findByLogin(dto.getUserEmail());
+		var user = userService.findByEmail(dto.getUserEmail());
 
 		if (Objects.isNull(user)) {
 			throw new NotFoundException("Usuario nao encontrado.");

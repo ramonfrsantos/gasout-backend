@@ -65,7 +65,7 @@ public class RoomServiceImpl implements RoomService {
 		List<RoomDTO> rooms = new ArrayList<>();
 
 		if (nameId == null || nameId == 0) {
-			rooms = parseToDTO(repository.findAllByUserEmail(userService.findByLogin(login).getEmail()));
+			rooms = parseToDTO(repository.findAllByUserEmail(userService.findByEmail(login).getEmail()));
 		} else {
 			var roomName = getRoomNameById(nameId);
 
@@ -83,7 +83,7 @@ public class RoomServiceImpl implements RoomService {
 		List<Room> newUserRooms;
 		User newUser;
 
-		var user = userService.findByLogin(email);
+		var user = userService.findByEmail(email);
 		if (user == null) {
 			throw new NotFoundException("Usuario nao encontrado.");
 		}
@@ -196,7 +196,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public RoomDTO getUserRoomByName(String email, RoomNameEnum roomName) {
-		var user = userService.findByLogin(email);
+		var user = userService.findByEmail(email);
 		var optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 
 		if (optRoom.isPresent()) {
@@ -211,7 +211,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public void deleteAllByUser(String email) {
-		var user = userService.findByLogin(email);
+		var user = userService.findByEmail(email);
 		user.setRooms(null);
 
 		for (Room room : repository.findAllByUserEmail(email)) {
@@ -224,7 +224,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public RoomDTO updateSwitches(RoomSwitchesDTO dto) {
-		var user = userService.findByLogin(dto.getUserEmail());
+		var user = userService.findByEmail(dto.getUserEmail());
 		var roomName = getRoomNameById(dto.getNameId());
 		var optRoom = repository.findByUserEmailAndName(user.getEmail(), roomName);
 

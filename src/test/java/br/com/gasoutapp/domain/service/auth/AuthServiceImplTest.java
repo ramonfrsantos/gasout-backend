@@ -17,13 +17,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
@@ -43,7 +44,7 @@ class AuthServiceImplTest {
     UserService userService;
 
     @InjectMocks
-    AuthServiceImpl authServiceImpl;
+    AuthServiceImpl authServiceImpl = new AuthServiceImpl(expectedUserEmail, expectedPassword,"ADMIN");
 
     @BeforeEach
     void setUp() {
@@ -64,25 +65,34 @@ class AuthServiceImplTest {
 
     @Test
     void checkIfAdminExistsTest() {
-        when(userService.findAllByRoles(any())).thenReturn(List.of());
+        when(userService.findAllByRoles(any())).thenReturn(new ArrayList<>());
         when(userService.create(any())).thenReturn(expectedUser);
-        when(userService.findByLogin(any())).thenReturn(expectedUser);
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
         when(userService.getDtoByUser(any())).thenReturn(loginResultDTO);
 
         var result = authServiceImpl.checkIfAdminExists();
 
         assertNotNull(result);
         assertEquals(loginResultDTO.getToken(), result);
+
+        verify(userService, times(1)).findAllByRoles(any());
+        verify(userService, times(1)).create(any());
+        verify(userService, times(1)).findByEmail(any());
+        verify(userService, times(1)).getDtoByUser(any());
     }
 
     @Test
     void checkIfAdminExistsUserIsNullTest() {
-        when(userService.findAllByRoles(any())).thenReturn(List.of());
+        when(userService.findAllByRoles(any())).thenReturn(new ArrayList<>());
         when(userService.create(any())).thenReturn(expectedUser);
-        when(userService.findByLogin(any())).thenReturn(null);
+        when(userService.findByEmail(any())).thenReturn(null);
 
         var ex = assertThrows(NotFoundException.class, () -> authServiceImpl.checkIfAdminExists());
         assertEquals("Dados de login incorretos.", ex.getMessage());
+
+        verify(userService, times(1)).findAllByRoles(any());
+        verify(userService, times(1)).create(any());
+        verify(userService, times(1)).findByEmail(any());
     }
 
     @Test
@@ -90,12 +100,16 @@ class AuthServiceImplTest {
         var invalidUser = new User();
         invalidUser.setPassword(invalidPassword);
 
-        when(userService.findAllByRoles(any())).thenReturn(List.of());
+        when(userService.findAllByRoles(any())).thenReturn(new ArrayList<>());
         when(userService.create(any())).thenReturn(invalidUser);
-        when(userService.findByLogin(any())).thenReturn(expectedUser);
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
 
         var ex = assertThrows(WrongPasswordException.class, () -> authServiceImpl.checkIfAdminExists());
         assertEquals("Senha incorreta.", ex.getMessage());
+
+        verify(userService, times(1)).findAllByRoles(any());
+        verify(userService, times(1)).create(any());
+        verify(userService, times(1)).findByEmail(any());
     }
 
     @Test
@@ -106,6 +120,8 @@ class AuthServiceImplTest {
 
         assertNotNull(result);
         assertEquals("Usuário [ADMIN] já existe no sistema.", result);
+
+        verify(userService, times(1)).findAllByRoles(any());
     }
 
     static String createNewToken(User user){

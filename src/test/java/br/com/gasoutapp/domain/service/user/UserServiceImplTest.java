@@ -1,10 +1,16 @@
 package br.com.gasoutapp.domain.service.user;
 
+import br.com.gasoutapp.application.dto.LoginResultDTO;
 import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
+import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.exception.UserAlreadyRegisteredException;
 import br.com.gasoutapp.infrastructure.config.security.EncryptorCustom;
+import br.com.gasoutapp.infrastructure.config.security.TokenService;
+import br.com.gasoutapp.infrastructure.db.entity.enums.UserTypeEnum;
+import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import br.com.gasoutapp.infrastructure.db.entity.user.User;
 import br.com.gasoutapp.infrastructure.db.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +32,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
+    String adminEmail = "admintest@mail.com";
     String expectedUserId = "1";
     String expectedUserEmail = "user@test.com";
     String expectedVerificationCode = "000000";
@@ -44,10 +51,13 @@ class UserServiceImplTest {
     UserRepository userRepository;
 
     @Mock
+    TokenService tokenService;
+
+    @Mock
     JavaMailSender mailSender;
 
     @InjectMocks
-    UserServiceImpl userService;
+    UserServiceImpl userService = new UserServiceImpl(adminEmail, adminEmail);
 
     @BeforeEach
     void setUp() {
@@ -64,6 +74,7 @@ class UserServiceImplTest {
         expectedUser.setEmail(expectedUserEmail);
         expectedUser.setPassword(expectedPassword);
         expectedUser.setVerificationCode(expectedVerificationCode);
+        expectedUser.setRoles(List.of(UserTypeEnum.CLIENTE));
         expectedUser.setDeleted(false);
 
         expectedRevisionsList = new ArrayList<>();
@@ -72,7 +83,7 @@ class UserServiceImplTest {
 
     @Test
     void findAllTest() {
-        List<UserDTO> expectedUserList = List.of(expectedUserDTO);
+        var expectedUserList = List.of(expectedUserDTO);
 
         when(userRepository.findAll()).thenReturn(List.of(expectedUser));
 
@@ -82,32 +93,54 @@ class UserServiceImplTest {
     }
 
     @Test
+    void findAllByRolesTest() {
+        var expectedUserList = List.of(expectedUser);
+
+        when(userRepository.findAllByRoles(any())).thenReturn(List.of(expectedUser));
+
+        assertEquals(expectedUserList, userService.findAllByRoles(UserTypeEnum.CLIENTE));
+
+        verify(userRepository, times(1)).findAllByRoles(any());
+    }
+
+    @Test
     void getVerificationCodeTest() {
-        when(userRepository.findByEmail(expectedUserEmail)).thenReturn(Optional.of(expectedUser));
+        when(userRepository.findByEmail(any())).thenReturn(Optional.of(expectedUser));
 
         assertEquals(expectedVerificationCode, userService.getVerificationCode("user@test.com"));
 
-        verify(userRepository, times(1)).findByEmail(expectedUserEmail);
+        verify(userRepository, times(1)).findByEmail(any());
+    }
+
+    @Test
+    void getDtoByUserTest() {
+        var loginResult = new LoginResultDTO();
+
+        when(tokenService.createTokenForUser(any())).thenReturn(loginResult);
+
+        assertEquals(loginResult, userService.getDtoByUser(new User()));
+
+        verify(userRepository, times(1)).save(any());
     }
 
     @Test
     void checkIfCodesAreEqualTest() {
-        when(userRepository.findByEmail(expectedUserEmail)).thenReturn(Optional.of(expectedUser));
+        when(userRepository.findByEmail(any())).thenReturn(Optional.of(expectedUser));
 
         assertTrue(userService.checkIfCodesAreEqual("user@test.com", "000000"));
 
-        verify(userRepository, times(1)).findByEmail(expectedUserEmail);
+        verify(userRepository, times(1)).findByEmail(any());
     }
 
     @Test
     void findUserByIdTest() {
-        String id = "1";
+        var id = "1";
 
-        when(userRepository.findById(id)).thenReturn(Optional.of(expectedUser));
+        when(userRepository.findById(any())).thenReturn(Optional.of(expectedUser));
 
         assertEquals(Optional.of(expectedUser), userService.findUserById(id));
 
-        verify(userRepository, times(1)).findById(id);
+        verify(userRepository, times(1)).findById(any());
     }
 
     @Test
@@ -118,7 +151,26 @@ class UserServiceImplTest {
 
         assertEquals(expectedUserDTO, userService.register(newUserDTO));
 
-        verify(userRepository, times(1)).findByEmail(expectedUserEmail);
+        verify(userRepository, times(1)).findByEmail(any());
+        verify(userRepository, times(1)).save(any());
+    }
+
+    @Test
+    void registerAdminUserTest() {
+        var newUserDTO = new UserDTO("User Test", adminEmail, "password");
+
+        var userAdmin = expectedUser;
+        userAdmin.setEmail(adminEmail);
+        userAdmin.setLogin(adminEmail);
+        userAdmin.setRoles(List.of(UserTypeEnum.ADMIN));
+
+        when(userRepository.save(any())).thenReturn(userAdmin);
+
+        var newUser = userService.register(newUserDTO);
+
+        assertEquals(adminEmail, newUser.getEmail());
+
+        verify(userRepository, times(1)).findByEmail(any());
         verify(userRepository, times(1)).save(any());
     }
 
@@ -126,13 +178,12 @@ class UserServiceImplTest {
     void registerTestUserAlreadyExists() {
         var newUserDTO = new UserDTO("User Test", expectedUserEmail, "password");
 
-        when(userRepository.findByEmail(expectedUserEmail)).thenReturn(Optional.of(expectedUser));
+        when(userRepository.findByEmail(any())).thenReturn(Optional.of(expectedUser));
 
         var ex = assertThrows(UserAlreadyRegisteredException.class, () -> userService.register(newUserDTO));
-
         assertEquals("Usuário com esse email já foi cadastrado.", ex.getMessage());
 
-        verify(userRepository, times(1)).findByEmail(expectedUserEmail);
+        verify(userRepository, times(1)).findByEmail(any());
         verify(userRepository, never()).save(any());
     }
 
@@ -142,31 +193,63 @@ class UserServiceImplTest {
         loginDTO.setLogin(expectedUserEmail);
         loginDTO.setPassword("password");
 
-        when(userRepository.findByEmail(expectedUserEmail)).thenReturn(Optional.of(expectedUser));
+        when(userRepository.findByEmail(any())).thenReturn(Optional.of(expectedUser));
 
         assertEquals(expectedPassword, userService.refreshPassword(loginDTO).getPassword());
     }
 
     @Test
     void sendVerificationMailTest() {
-        when(userRepository.findByEmail(expectedUserEmail)).thenReturn(Optional.of(expectedUser));
+        when(userRepository.findByEmail(any())).thenReturn(Optional.of(expectedUser));
         when(userRepository.save(any())).thenReturn(expectedUser);
 
         assertNotNull(expectedVerificationCode, userService.sendVerificationMail("user@test.com"));
 
-        verify(userRepository, times(1)).findByEmail(expectedUserEmail);
+        verify(userRepository, times(1)).findByEmail(any());
         verify(userRepository, times(1)).save(any());
         verify(mailSender, times(1)).send((SimpleMailMessage) any());
     }
 
     @Test
     void deleteTest() {
-        when(userRepository.findByEmail(expectedUserEmail)).thenReturn(Optional.of(expectedUser));
+        when(userRepository.findByEmail(any())).thenReturn(Optional.of(expectedUser));
 
         assertEquals("Registro excluido com sucesso.", userService.delete("user@test.com"));
         assertTrue(expectedUser.isDeleted());
 
-        verify(userRepository, times(1)).findByEmail(expectedUserEmail);
+        verify(userRepository, times(1)).findByEmail(any());
+        verify(userRepository, times(1)).save(any());
+    }
+
+    @Test
+    void findByEmailThrowsExceptionTest() {
+        when(userRepository.findByEmail(any())).thenReturn(Optional.empty());
+
+        var ex = assertThrows(NotFoundException.class, () -> userService.findByEmail("invalid@test.com"));
+        assertEquals("Usuario com email [invalid@test.com] nao foi encontrado.", ex.getMessage());
+
+        verify(userRepository, times(1)).findByEmail(any());
+    }
+
+    @Test
+    void setUserRoomsTest() {
+        var newUser = new User();
+
+        userService.setUserRooms(List.of(new Room()), newUser);
+
+        assertEquals(1, newUser.getRooms().size());
+
+        verify(userRepository, times(1)).save(any());
+    }
+
+    @Test
+    void setUserNotificationsTest() {
+        var newUser = new User();
+
+        userService.setUserNotifications(List.of(new Notification()), newUser);
+
+        assertEquals(1, newUser.getNotifications().size());
+
         verify(userRepository, times(1)).save(any());
     }
 }

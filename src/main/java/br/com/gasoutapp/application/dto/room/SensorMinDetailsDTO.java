@@ -15,6 +15,6 @@ public class SensorMinDetailsDTO {
 
 	public SensorMinDetailsDTO(Sensor sensor) {
 		this.sensorValue = sensor.getSensorValue();	
-		this.timestamp = sensor.getTimestamp().toInstant().atZone(ZoneId.of("America/Sao_Paulo"));
+		this.timestamp = sensor.getTimestamp().toInstant().atZone(ZoneId.of("America/Sao_Paulo")).withNano(0);
 	}
 }

@@ -15,9 +15,12 @@ import br.com.gasoutapp.infrastructure.utils.FluentServiceUtils;
 public class FirebaseServiceImpl implements FirebaseService {
 
 	private static final String FIREBASE_URL = "https://fcm.googleapis.com/fcm/send";
-	
-	@Value("${firebase.api-key:api_key}")
-	private String apiKey;
+
+	private final String apiKey;
+
+    public FirebaseServiceImpl(@Value("${firebase.api-key:api_key}") String apiKey) {
+        this.apiKey = apiKey;
+    }
 
     @Override
 	public void createFirebaseNotification(FirebaseNotificationDTO dto) throws IOException, URISyntaxException {

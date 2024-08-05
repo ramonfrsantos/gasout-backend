@@ -52,13 +52,16 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private EntityManagerFactory factory;
 
-	@Value("${spring.mail.username}")
-	private String companyEmail;
+	private final String companyEmail;
 
-	@Value("${user.admin.email}")
-	private String adminEmail;
+	private final String adminEmail;
 
-    @Transactional
+	public UserServiceImpl(@Value("${spring.mail.username}") String companyEmail, @Value("${user.admin.email}") String adminEmail) {
+        this.companyEmail = companyEmail;
+        this.adminEmail = adminEmail;
+	}
+
+	@Transactional
 	public UserDTO register(UserDTO userDTO) {
 		var newUser = create(userDTO);
 
@@ -78,7 +81,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public String delete(String login) {
-		var user = findByLogin(login);
+		var user = this.findByEmail(login);
 		user.setDeleted(true);
 
 		repository.save(user);
@@ -154,29 +157,6 @@ public class UserServiceImpl implements UserService {
 		repository.save(user);
 
 		return dto;
-	}
-
-	@Override
-	public User findByLogin(String login) {
-		var optUser = repository.findByEmail(login);
-
-		if (optUser.isEmpty()) {
-			throw new NotFoundException(String.format("Usuario com login [%s] nao foi encontrado.", login));
-		}
-
-		return optUser.get();
-	}
-	
-	@Override
-	public User findByLoginAndPassword(String login, String password) {
-		var optUser = repository.findByLoginAndPassword(login, password);
-
-		if (optUser.isEmpty()) {
-			throw new NotFoundException("Usuario com senha e login informados nao foi encontrado.");
-		}
-
-		return optUser.get();
-
 	}
 
 	@Override
