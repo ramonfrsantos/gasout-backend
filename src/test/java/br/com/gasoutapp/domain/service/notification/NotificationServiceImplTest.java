@@ -165,7 +165,7 @@ class NotificationServiceImplTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"0, GAS", "25, UMIDADE", "50, UMIDADE", "90, GAS"})
+    @CsvSource({"0, GAS", "25, GAS", "50, GAS", "90, GAS", "90, UMIDADE"})
     void sendPushTest(long sensorValue, SensorTypeEnum sensorType) {
         firebaseService = mock(FirebaseService.class);
 

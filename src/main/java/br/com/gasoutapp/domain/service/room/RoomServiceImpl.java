@@ -1,7 +1,6 @@
 package br.com.gasoutapp.domain.service.room;
 
 import static br.com.gasoutapp.infrastructure.utils.DateUtils.differenceInMinutes;
-import static br.com.gasoutapp.infrastructure.utils.JsonUtil.convertToObjectArray;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,13 +12,9 @@ import java.util.Optional;
 import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
 
-import org.hibernate.envers.AuditReaderFactory;
-import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.room.RoomDTO;
 import br.com.gasoutapp.application.dto.room.RoomNameDTO;
 import br.com.gasoutapp.application.dto.room.RoomSwitchesDTO;
@@ -312,34 +307,6 @@ public class RoomServiceImpl implements RoomService {
 		roomDTO.setUmiditySensorValue(recentUmiditySensorValues.get(0).getSensorValue());
 
 		return roomDTO;
-	}
-
-	@Override
-	public List<RevisionDTO> getRevisions(String id) {
-		var auditQuery = getAuditQuery(id);
-
-		List<RevisionDTO> details = new ArrayList<>();
-
-		for (Object revision : auditQuery.getResultList()) {
-			var r = new RevisionDTO();
-
-			var objArray = convertToObjectArray(revision);
-			r.setEntity(objArray[0]);
-			r.setRevisionDetails(objArray[1]);
-			r.setRevisionType(objArray[2]);
-			r.setUpdatedAttributes(objArray[3]);
-
-			details.add(r);
-		}
-
-		return details;
-	}
-
-	private AuditQuery getAuditQuery(String id) {
-		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
-
-		return auditReader.createQuery().forRevisionsOfEntityWithChanges(Room.class, true)
-				.add(AuditEntity.id().eq(id));
 	}
 
 }

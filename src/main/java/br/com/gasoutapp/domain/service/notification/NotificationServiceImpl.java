@@ -1,6 +1,5 @@
 package br.com.gasoutapp.domain.service.notification;
 
-import static br.com.gasoutapp.infrastructure.utils.JsonUtil.convertToObjectArray;
 import static br.com.gasoutapp.infrastructure.utils.StringUtils.reverseList;
 
 import java.util.ArrayList;
@@ -10,13 +9,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.envers.AuditReaderFactory;
-import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.notification.FirebaseNotificationDTO;
 import br.com.gasoutapp.application.dto.notification.NotificationDTO;
 import br.com.gasoutapp.application.dto.notification.PushResponseDTO;
@@ -219,33 +214,5 @@ public class NotificationServiceImpl implements NotificationService {
 
 	public NotificationDTO parseToDTO(Notification notification) {
 		return new NotificationDTO(notification);
-	}
-
-	@Override
-	public List<RevisionDTO> getRevisions(String id) {
-		var auditQuery = getAuditQuery(id);
-
-		List<RevisionDTO> details = new ArrayList<>();
-
-		for (Object revision : auditQuery.getResultList()) {
-			var r = new RevisionDTO();
-
-			var objArray = convertToObjectArray(revision);
-			r.setEntity(objArray[0]);
-			r.setRevisionDetails(objArray[1]);
-			r.setRevisionType(objArray[2]);
-			r.setUpdatedAttributes(objArray[3]);
-
-			details.add(r);
-		}
-
-		return details;
-	}
-
-	private AuditQuery getAuditQuery(String id) {
-		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
-
-		return auditReader.createQuery().forRevisionsOfEntityWithChanges(Notification.class, true)
-				.add(AuditEntity.id().eq(id));
 	}
 }

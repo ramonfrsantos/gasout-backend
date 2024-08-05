@@ -1,28 +1,21 @@
 package br.com.gasoutapp.domain.service.user;
 
-import static br.com.gasoutapp.infrastructure.utils.JsonUtil.convertToObjectArray;
 import static br.com.gasoutapp.infrastructure.utils.StringUtils.createRandomCode;
 import static br.com.gasoutapp.infrastructure.utils.StringUtils.normalizeString;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.envers.AuditReaderFactory;
-import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.exception.NotFoundException;
@@ -48,9 +41,6 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private JavaMailSender mailSender;
-
-	@Autowired
-	private EntityManagerFactory factory;
 
 	private final String companyEmail;
 
@@ -180,34 +170,6 @@ public class UserServiceImpl implements UserService {
 	public void setUserNotifications(List<Notification> newUserNotifications, User user) {
 		user.setNotifications(newUserNotifications);
 		repository.save(user);
-	}
-
-	@Override
-	public List<RevisionDTO> getRevisions(String id) {
-		var auditQuery = getAuditQuery(id);
-
-		List<RevisionDTO> details = new ArrayList<>();
-
-		for (Object revision : auditQuery.getResultList()) {
-			var r = new RevisionDTO();
-			var objArray = convertToObjectArray(revision);
-
-			r.setEntity(objArray[0]);
-			r.setRevisionDetails(objArray[1]);
-			r.setRevisionType(objArray[2]);
-			r.setUpdatedAttributes(objArray[3]);
-			
-			details.add(r);
-		}
-
-		return details;
-	}
-
-	private AuditQuery getAuditQuery(String id) {
-		var auditReader = AuditReaderFactory.get(factory.createEntityManager());
-
-		return auditReader.createQuery().forRevisionsOfEntityWithChanges(User.class, true)
-				.add(AuditEntity.id().eq(id));
 	}
 
 	public List<UserDTO> parseToDTO(List<User> list) {

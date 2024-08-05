@@ -5,6 +5,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import javax.validation.Valid;
 
+import br.com.gasoutapp.domain.service.audit.RevisionService;
+import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
@@ -39,10 +41,13 @@ public class RoomController extends BaseRestController {
 	@Autowired
 	private RoomService service;
 
+	@Autowired
+	private RevisionService revisionService;
+
     @GetMapping("/revisions/{id}")
 	@Operation(summary = "Buscar revisões do <i>envers</i>", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getRevisions(@PathVariable String id) {
-		return buildResponse(service.getRevisions(id));
+		return buildResponse(revisionService.getRevisions(id, Room.class));
 	}
 
 	@GetMapping

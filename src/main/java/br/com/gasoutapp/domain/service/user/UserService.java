@@ -3,7 +3,6 @@ package br.com.gasoutapp.domain.service.user;
 import java.util.List;
 import java.util.Optional;
 
-import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.application.dto.LoginResultDTO;
@@ -41,6 +40,4 @@ public interface UserService {
 	void setUserRooms(List<Room> newUserRooms, User user);
 
 	void setUserNotifications(List<Notification> newUserNotifications, User user);
-
-	List<RevisionDTO> getRevisions(String id);
 }

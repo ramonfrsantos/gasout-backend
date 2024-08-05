@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 
-import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.notification.NotificationDTO;
 import br.com.gasoutapp.application.dto.notification.PushResponseDTO;
 import br.com.gasoutapp.application.dto.room.SensorGasPayloadDTO;
@@ -31,6 +30,4 @@ public interface NotificationService {
 	Optional<Notification> findNotificationById(String id);
 
 	PushResponseDTO sendPush(SensorGasPayloadDTO payload) throws IOException, URISyntaxException;
-
-	List<RevisionDTO> getRevisions(String id);
 }

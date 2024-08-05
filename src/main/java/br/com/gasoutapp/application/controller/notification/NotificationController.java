@@ -8,6 +8,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import br.com.gasoutapp.application.dto.notification.NotificationGeneratorDTO;
+import br.com.gasoutapp.domain.service.audit.RevisionService;
+import br.com.gasoutapp.infrastructure.db.entity.notification.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
@@ -38,10 +40,13 @@ public class NotificationController extends BaseRestController {
 	@Autowired
 	private NotificationService service;
 
+	@Autowired
+	private RevisionService revisionService;
+
     @GetMapping("/revisions/{id}")
 	@Operation(summary = "Buscar revisões do <i>envers</i>", security = @SecurityRequirement(name = "gasoutapp"))
 	public BaseResponseDTO getRevisions(@PathVariable String id) {
-		return buildResponse(service.getRevisions(id));
+		return buildResponse(revisionService.getRevisions(id, Notification.class));
 	}
 
 	@GetMapping

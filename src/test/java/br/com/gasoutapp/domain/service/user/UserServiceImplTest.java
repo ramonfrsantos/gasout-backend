@@ -1,7 +1,6 @@
 package br.com.gasoutapp.domain.service.user;
 
 import br.com.gasoutapp.application.dto.LoginResultDTO;
-import br.com.gasoutapp.application.dto.audit.RevisionDTO;
 import br.com.gasoutapp.application.dto.user.LoginDTO;
 import br.com.gasoutapp.application.dto.user.UserDTO;
 import br.com.gasoutapp.domain.exception.NotFoundException;
@@ -22,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,9 +38,6 @@ class UserServiceImplTest {
     String expectedPassword = EncryptorCustom.encrypt("password");
     User expectedUser;
     UserDTO expectedUserDTO;
-
-    @Mock
-    List<RevisionDTO> expectedRevisionsList;
 
     @Mock
     UserRepository userRepository;
@@ -73,9 +68,6 @@ class UserServiceImplTest {
         expectedUser.setVerificationCode(expectedVerificationCode);
         expectedUser.setRoles(List.of(UserTypeEnum.CLIENTE));
         expectedUser.setDeleted(false);
-
-        expectedRevisionsList = new ArrayList<>();
-        expectedRevisionsList.add(new RevisionDTO());
     }
 
     @Test
@@ -116,6 +108,20 @@ class UserServiceImplTest {
         when(tokenService.createTokenForUser(any())).thenReturn(loginResult);
 
         assertEquals(loginResult, userService.getDtoByUser(new User()));
+
+        verify(userRepository, times(1)).save(any());
+    }
+
+    @Test
+    void getDtoByUserAndUserNotNullNorEmptyNameTest() {
+        var user = new User();
+        user.setName(expectedUserName);
+
+        var loginResult = new LoginResultDTO();
+
+        when(tokenService.createTokenForUser(any())).thenReturn(loginResult);
+
+        assertEquals(loginResult, userService.getDtoByUser(user));
 
         verify(userRepository, times(1)).save(any());
     }
