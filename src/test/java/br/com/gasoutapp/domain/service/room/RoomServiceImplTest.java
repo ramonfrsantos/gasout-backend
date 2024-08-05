@@ -2,6 +2,9 @@ package br.com.gasoutapp.domain.service.room;
 
 import br.com.gasoutapp.application.dto.room.*;
 import br.com.gasoutapp.application.dto.user.UserDTO;
+import br.com.gasoutapp.domain.exception.AlreadyExistsException;
+import br.com.gasoutapp.domain.exception.ListSizeNotValidException;
+import br.com.gasoutapp.domain.exception.NotFoundException;
 import br.com.gasoutapp.domain.service.user.UserService;
 import br.com.gasoutapp.infrastructure.db.entity.enums.RoomNameEnum;
 import br.com.gasoutapp.infrastructure.db.entity.enums.SensorTypeEnum;
@@ -13,6 +16,8 @@ import br.com.gasoutapp.infrastructure.db.repository.SensorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,6 +26,7 @@ import java.time.ZoneId;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -137,6 +143,35 @@ class RoomServiceImplTest {
         assertEquals(expectedRoomList, roomService.getAllUserRooms(expectedUserEmail, RoomNameEnum.COZINHA.getNameId()));
 
         verify(roomRepository, times(1)).findByUserEmailAndName(any(), any());
+        verify(roomRepository, never()).findAllByUserEmail(any());
+        verify(userService, times(1)).findByEmail(any());
+        verify(sensorRepository, times(2)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+    }
+
+    @Test
+    void getAllUserRoomsThrowsNotFoundException() {
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
+        when(roomRepository.findByUserEmailAndName(any(), any())).thenReturn(Optional.empty());
+
+        var ex = assertThrows(NotFoundException.class, this::invokeGetAllUserRoomsThrowsNotFoundException);
+        assertEquals("Comodo nao cadastrado.", ex.getMessage());
+
+        verify(roomRepository, times(1)).findByUserEmailAndName(any(), any());
+        verify(roomRepository, never()).findAllByUserEmail(any());
+        verify(userService, times(1)).findByEmail(any());
+        verify(sensorRepository, never()).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+    }
+
+    @Test
+    void getAllUserRoomsFindByRoomInexistentTest(){
+        List<RoomDTO> expectedRoomList = new ArrayList<>();
+
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
+
+        assertEquals(expectedRoomList, roomService.getAllUserRooms(expectedUserEmail, 0));
+
+        verify(roomRepository, times(1)).findAllByUserEmail(any());
+        verify(userService, times(1)).findByEmail(any());
     }
 
     @Test
@@ -152,6 +187,30 @@ class RoomServiceImplTest {
         verify(roomRepository, times(1)).findAllByUserEmail(any());
         verify(roomRepository, times(1)).save(any());
         verify(sensorRepository, times(2)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+    }
+
+    @Test
+    void createRoomThrowsNotFoundException(){
+        when(userService.findByEmail(any())).thenReturn(null);
+
+        var ex = assertThrows(NotFoundException.class, this::invokeCreateRoomThrowsNotFoundException);
+        assertEquals("Usuario nao encontrado.", ex.getMessage());
+
+        verify(userService, times(1)).findByEmail(any());
+        verify(roomRepository, never()).save(any());
+    }
+
+    @Test
+    void createRoomThrowsAlreadyExistsException(){
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
+        when(roomRepository.findAllByUserEmail(any())).thenReturn(List.of(expectedRoom));
+
+        var ex = assertThrows(AlreadyExistsException.class, this::invokeCreateRoomThrowsAlreadyExistsException);
+        assertEquals("Esse cômodo já foi cadastrado.", ex.getMessage());
+
+        verify(userService, times(1)).findByEmail(any());
+        verify(roomRepository, times(1)).findAllByUserEmail(any());
+        verify(roomRepository, never()).save(any());
     }
 
     @Test
@@ -181,11 +240,26 @@ class RoomServiceImplTest {
         verify(sensorRepository, times(2)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
     }
 
-
     @Test
-    void sendRoomSensorValueTest(){
+    void updateSwitchesThrowsNotFoundException(){
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
+        when(roomRepository.findByUserEmailAndName(any(), any())).thenReturn(Optional.empty());
+
+        var ex = assertThrows(NotFoundException.class, this::invokeUpdateSwitchesThrowsNotFoundException);
+        assertEquals("Comodo nao cadastrado.", ex.getMessage());
+
+        verify(userService, times(1)).findByEmail(any());
+        verify(roomRepository, times(1)).findByUserEmailAndName(any(), any());
+        verify(roomRepository, never()).save(any());
+        verify(sensorRepository, never()).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+    }
+
+
+    @ParameterizedTest
+    @CsvSource({"0", "25", "50", "90"})
+    void sendRoomSensorValueTest(long sensorValue){
         var sensor = new SensorDTO();
-        sensor.setSensorValue(0L);
+        sensor.setSensorValue(sensorValue);
         sensor.setSensorType(SensorTypeEnum.GAS);
         sensor.setRoomNameId(RoomNameEnum.COZINHA.getNameId());
         sensor.setTimestamp(new Date());
@@ -193,22 +267,86 @@ class RoomServiceImplTest {
 
         when(userService.findByEmail(any())).thenReturn(expectedUser);
         when(roomRepository.findAllByUserEmail(any())).thenReturn(List.of(expectedRoom));
-        when(roomRepository.save(any())).thenReturn(expectedRoom);
         when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(List.of(expectedSensor));
-        when(sensorRepository.save(any())).thenReturn(expectedSensor);
 
         var timestamp = new Date().toInstant().atZone(ZoneId.of("America/Sao_Paulo")).withNano(0);
 
         RoomDTO updatedRoom = expectedRoomDTO;
         updatedRoom.getRecentGasSensorValues().get(0).setTimestamp(timestamp);
+        updatedRoom.setGasSensorValue(sensorValue);
+        updatedRoom.setUmiditySensorValue(sensorValue);
 
-        assertEquals(updatedRoom, roomService.sendRoomSensorValue(sensor));
+        var result = roomService.sendRoomSensorValue(sensor);
+
+        assertEquals(updatedRoom.getGasSensorValue(), result.getGasSensorValue());
+        assertEquals(updatedRoom.getUmiditySensorValue(),result.getUmiditySensorValue());
+        assertEquals(updatedRoom.getUser(), result.getUser());
+        assertEquals(updatedRoom.getDetails(), result.getDetails());
 
         verify(userService, times(1)).findByEmail(any());
         verify(roomRepository, times(1)).findAllByUserEmail(any());
         verify(roomRepository, times(1)).save(any());
         verify(sensorRepository, times(3)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+        verify(sensorRepository, never()).findOldestSensorByRoomOrderByTimestampAsc(any(), any());
         verify(sensorRepository, times(1)).save(any());
+    }
+
+    @Test
+    void sendRoomSensorValueWithSameTimestampTest(){
+        var sensor = new SensorDTO();
+        sensor.setSensorValue(0L);
+        sensor.setSensorType(SensorTypeEnum.GAS);
+        sensor.setRoomNameId(RoomNameEnum.COZINHA.getNameId());
+        sensor.setTimestamp(new Date());
+        sensor.setUserEmail(expectedUserEmail);
+
+        expectedSensor.setTimestamp(new Date());
+
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
+        when(roomRepository.findAllByUserEmail(any())).thenReturn(List.of(expectedRoom));
+        when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(getFilledsensorList());
+        when(sensorRepository.findOldestSensorByRoomOrderByTimestampAsc(any(), any())).thenReturn(getFilledsensorList());
+
+        var updatedRoom = roomService.sendRoomSensorValue(sensor);
+        assertEquals(12, updatedRoom.getRecentGasSensorValues().size());
+
+        verify(userService, times(1)).findByEmail(any());
+        verify(roomRepository, times(1)).findAllByUserEmail(any());
+        verify(roomRepository, times(1)).save(any());
+        verify(sensorRepository, times(3)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+        verify(sensorRepository, times(1)).findOldestSensorByRoomOrderByTimestampAsc(any(), any());
+        verify(sensorRepository, times(1)).save(any());
+    }
+
+    @Test
+    void sendRoomSensorValueThrowsListSizeNotValidException(){
+        expectedSensor.setTimestamp(new Date());
+
+        when(userService.findByEmail(any())).thenReturn(expectedUser);
+        when(roomRepository.findAllByUserEmail(any())).thenReturn(List.of(expectedRoom));
+        when(sensorRepository.findRecentSensorByRoomOrderByTimestampDesc(any(), any())).thenReturn(List.of(expectedSensor));
+        when(sensorRepository.findOldestSensorByRoomOrderByTimestampAsc(any(), any())).thenReturn(List.of(expectedSensor));
+
+        var ex = assertThrows(ListSizeNotValidException.class, this::invokeSendRoomSensorValueThrowsListSizeNotValidException);
+        assertEquals("A lista de valores possui tamanho invalido.", ex.getMessage());
+
+        verify(userService, times(1)).findByEmail(any());
+        verify(roomRepository, times(1)).findAllByUserEmail(any());
+        verify(roomRepository, never()).save(any());
+        verify(sensorRepository, times(1)).findRecentSensorByRoomOrderByTimestampDesc(any(), any());
+        verify(sensorRepository, times(1)).findOldestSensorByRoomOrderByTimestampAsc(any(), any());
+        verify(sensorRepository, never()).save(any());
+    }
+
+    private void invokeSendRoomSensorValueThrowsListSizeNotValidException() {
+        var sensor = new SensorDTO();
+        sensor.setSensorValue(0L);
+        sensor.setSensorType(SensorTypeEnum.GAS);
+        sensor.setRoomNameId(RoomNameEnum.COZINHA.getNameId());
+        sensor.setTimestamp(new Date());
+        sensor.setUserEmail(expectedUserEmail);
+
+        roomService.sendRoomSensorValue(sensor);
     }
 
     @Test
@@ -220,6 +358,26 @@ class RoomServiceImplTest {
 
         verify(roomRepository, times(1)).findById(any());
         verify(roomRepository, times(1)).save(any());
+    }
+
+    @Test
+    void getRoomNameByIdTest() {
+        assertEquals(RoomNameEnum.COZINHA, roomService.getRoomNameById(7));
+    }
+
+    @Test
+    void findAllByUserEmailTest() {
+        when(roomRepository.findAllByUserEmail(any())).thenReturn(List.of(expectedRoom));
+
+        assertEquals(List.of(expectedRoom), roomService.findAllByUserEmail(expectedUserEmail));
+
+        verify(roomRepository, times(1)).findAllByUserEmail(any());
+    }
+
+    @Test
+    void getRoomNameByIdThrowsNotFoundException() {
+        var ex = assertThrows(NotFoundException.class, this::invokeGetRoomNameByIdThrowsNotFoundException);
+        assertEquals("Nao foi encontrado nenhum comodo com esse id.", ex.getMessage());
     }
 
     @Test
@@ -235,5 +393,49 @@ class RoomServiceImplTest {
         verify(userService, times(1)).findByEmail(any());
         verify(roomRepository, times(1)).delete(any());
         verify(sensorRepository, times(1)).delete(any());
+    }
+
+    private List<Sensor> getFilledsensorList() {
+        return List.of(
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor,
+                expectedSensor
+        );
+    }
+
+    private void invokeGetAllUserRoomsThrowsNotFoundException() {
+        roomService.getAllUserRooms(expectedUserEmail, RoomNameEnum.COZINHA.getNameId());
+    }
+
+    private void invokeCreateRoomThrowsAlreadyExistsException() {
+        roomService.createRoom(RoomNameEnum.COZINHA, expectedUserEmail);
+    }
+
+    private void invokeCreateRoomThrowsNotFoundException() {
+        roomService.createRoom(RoomNameEnum.COZINHA, "invalid@test.com");
+    }
+
+    private void invokeGetRoomNameByIdThrowsNotFoundException() {
+        roomService.getRoomNameById(0);
+    }
+
+    private void invokeUpdateSwitchesThrowsNotFoundException() {
+        RoomSwitchesDTO switches = new RoomSwitchesDTO();
+        switches.setAlarmOn(true);
+        switches.setSprinklersOn(false);
+        switches.setNotificationOn(true);
+        switches.setUserEmail(expectedUserEmail);
+        switches.setNameId(RoomNameEnum.COZINHA.getNameId());
+
+        roomService.updateSwitches(switches);
     }
 }

@@ -82,12 +82,12 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void checkIfAdminExistsUserIsNullTest() {
+    void checkIfAdminExistsThrowsUserNotFoundException() {
         when(userService.findAllByRoles(any())).thenReturn(new ArrayList<>());
         when(userService.create(any())).thenReturn(expectedUser);
         when(userService.findByEmail(any())).thenReturn(null);
 
-        var ex = assertThrows(NotFoundException.class, () -> authServiceImpl.checkIfAdminExists());
+        var ex = assertThrows(NotFoundException.class, this::invokeCheckIfAdminExistsThrowsUserNotFoundException);
         assertEquals("Dados de login incorretos.", ex.getMessage());
 
         verify(userService, times(1)).findAllByRoles(any());
@@ -96,7 +96,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void checkIfAdminExistsWrongPasswordTest() {
+    void checkIfAdminExistsThrowsWrongPasswordException() {
         var invalidUser = new User();
         invalidUser.setPassword(invalidPassword);
 
@@ -104,7 +104,7 @@ class AuthServiceImplTest {
         when(userService.create(any())).thenReturn(invalidUser);
         when(userService.findByEmail(any())).thenReturn(expectedUser);
 
-        var ex = assertThrows(WrongPasswordException.class, () -> authServiceImpl.checkIfAdminExists());
+        var ex = assertThrows(WrongPasswordException.class, this::invokeCheckIfAdminExistsThrowsWrongPasswordException);
         assertEquals("Senha incorreta.", ex.getMessage());
 
         verify(userService, times(1)).findAllByRoles(any());
@@ -140,5 +140,13 @@ class AuthServiceImplTest {
         return Jwts.builder().claim("id", user.getId()).claim("roles", user.getRoles())
                 .setSubject(user.getLogin()).setExpiration(calendar.getTime())
                 .signWith(SignatureAlgorithm.HS512, SecurityFilter.getSecretKey()).compact();
+    }
+
+    private void invokeCheckIfAdminExistsThrowsUserNotFoundException() {
+        authServiceImpl.checkIfAdminExists();
+    }
+
+    private void invokeCheckIfAdminExistsThrowsWrongPasswordException() {
+        authServiceImpl.checkIfAdminExists();
     }
 }

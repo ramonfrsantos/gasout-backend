@@ -175,12 +175,10 @@ class UserServiceImplTest {
     }
 
     @Test
-    void registerTestUserAlreadyExists() {
-        var newUserDTO = new UserDTO("User Test", expectedUserEmail, "password");
-
+    void registerThrowsUserAlreadyExistsException() {
         when(userRepository.findByEmail(any())).thenReturn(Optional.of(expectedUser));
 
-        var ex = assertThrows(UserAlreadyRegisteredException.class, () -> userService.register(newUserDTO));
+        var ex = assertThrows(UserAlreadyRegisteredException.class, this::invokeRegisterThrowsUserAlreadyExistsException);
         assertEquals("Usuário com esse email já foi cadastrado.", ex.getMessage());
 
         verify(userRepository, times(1)).findByEmail(any());
@@ -222,10 +220,10 @@ class UserServiceImplTest {
     }
 
     @Test
-    void findByEmailThrowsExceptionTest() {
+    void findByEmailThrowsNotFoundException() {
         when(userRepository.findByEmail(any())).thenReturn(Optional.empty());
 
-        var ex = assertThrows(NotFoundException.class, () -> userService.findByEmail("invalid@test.com"));
+        var ex = assertThrows(NotFoundException.class, this::invokeFindByEmailThrowsNotFoundException);
         assertEquals("Usuario com email [invalid@test.com] nao foi encontrado.", ex.getMessage());
 
         verify(userRepository, times(1)).findByEmail(any());
@@ -251,5 +249,14 @@ class UserServiceImplTest {
         assertEquals(1, newUser.getNotifications().size());
 
         verify(userRepository, times(1)).save(any());
+    }
+
+    private void invokeRegisterThrowsUserAlreadyExistsException() {
+        var newUserDTO = new UserDTO("User Test", expectedUserEmail, "password");
+        userService.register(newUserDTO);
+    }
+
+    private void invokeFindByEmailThrowsNotFoundException() {
+        userService.findByEmail("invalid@test.com");
     }
 }
