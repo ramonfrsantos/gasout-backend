@@ -3,15 +3,12 @@ package br.com.gasoutapp.domain.service.notification;
 import static br.com.gasoutapp.infrastructure.utils.JsonUtil.convertToObjectArray;
 import static br.com.gasoutapp.infrastructure.utils.StringUtils.reverseList;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import br.com.gasoutapp.infrastructure.db.entity.room.Room;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
@@ -170,11 +167,7 @@ public class NotificationServiceImpl implements NotificationService {
 						firebaseNotificationDTO.setNotification(notificationDTO);
 						firebaseNotificationDTO.setRegistrationIds(ids);
 
-						try {
-							firebaseService.createFirebaseNotification(firebaseNotificationDTO);
-						} catch (IOException | URISyntaxException e) {
-							log.error("Error = {}", e.getMessage());
-						} 
+						firebaseService.createFirebaseNotification(firebaseNotificationDTO);
 	
 						responseDTO.setPushNotificationSent(true);
 
@@ -202,7 +195,7 @@ public class NotificationServiceImpl implements NotificationService {
 		if (gasSensorValue <= 0) {
 			title = "Apenas atualização de status...";
 			body = "Tudo em paz! Sem vazamento de gás no momento.";
-		} else if (gasSensorValue <= 24) {
+		} else if (gasSensorValue <= 25) {
 			title = "🚨 Atenção!";
 			body = "Detectamos nível BAIXO de vazamento em seu local!";
 		} else if (gasSensorValue <= 50) {
